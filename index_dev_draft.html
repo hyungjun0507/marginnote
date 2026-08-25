@@ -1,0 +1,2532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#12141C">
+<link rel="icon" href="icon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="마진노트">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<title>마진노트</title>
+<style>
+/* 기본(root) = "잉크" 다크 장부 테마. .dark 클래스는 코드 호환을 위해 이름은 유지하되
+   실제로는 "낮(라이트/종이)" 대체 테마를 담당합니다. */
+:root {
+  --bg-color: #12141C; --text-color: #EDE6D3; --card-bg: #1B1E2A; --card-border: #2A2F42;
+  --input-bg: #1F2330; --primary: #C9A227; --primary-bg: rgba(201,162,39,0.14);
+  --accent-rose: #C1443A; --accent-green: #1F8F68; --accent-amber: #C9A227; --muted: #8B90A3;
+  --on-primary: #14161F;
+}
+.dark {
+  --bg-color: #F6F1E4; --text-color: #1B1E2A; --card-bg: #FFFFFF; --card-border: #E3DCC8;
+  --input-bg: #FFFFFF; --primary: #A9821E; --primary-bg: #F1E6C8;
+  --accent-rose: #B23B30; --accent-green: #16744F; --accent-amber: #A9821E; --muted: #8A8060;
+  --on-primary: #14161F;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-tap-highlight-color: transparent; font-variant-numeric: tabular-nums; }
+body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 6rem; transition: background 0.2s, color 0.2s; }
+.app-container { max-width: 440px; margin: 0 auto; padding: 1rem; position: relative; }
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; padding-bottom: 0.7rem; border-bottom: 2px solid var(--primary); }
+h1 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
+.sub-title { font-size: 0.62rem; font-weight: 700; color: var(--primary); letter-spacing: 1.5px; text-transform: uppercase; }
+.glass-card { background: var(--card-bg); border-radius: 0.75rem; padding: 0.8rem; border: 1px solid var(--card-border); margin-bottom: 0.8rem; box-shadow: 0 4px 10px -4px rgba(0,0,0,0.15); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.4rem; }
+input, select { width: 100%; border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-color); border-radius: 0.45rem; padding: 0.5rem; font-size: 0.8rem; outline: none; margin-bottom: 0.3rem; }
+button { border: none; cursor: pointer; border-radius: 0.45rem; font-weight: 800; padding: 0.5rem; transition: transform 0.1s; font-size: 0.8rem; font-family: inherit; }
+button:active { transform: scale(0.96); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: var(--on-primary); width: 100%; font-size: 0.85rem; }
+.btn-sm { font-size: 0.65rem; padding: 0.3rem 0.5rem; border-radius: 0.35rem; }
+.text-center { text-align: center; }
+.hidden-page { display: none !important; pointer-events: none !important; }
+.role-badge { padding: 3px 11px; border-radius: 999px; font-size: 0.6rem; font-weight: 900; letter-spacing: 0.5px; border: 2px solid currentColor; background: transparent !important; display: inline-block; transform: rotate(-3deg); font-family: 'JetBrains Mono', monospace; }
+.low-stock { border: 1.5px solid var(--accent-rose) !important; }
+.stock-badge { font-size: 0.55rem; font-weight: 800; padding: 1px 5px; border-radius: 6px; }
+nav { position: fixed; bottom: 0.8rem; left: 0.75rem; right: 0.75rem; max-width: 416px; margin: 0 auto; background: var(--card-bg); border: 1px solid var(--card-border); height: 3.8rem; border-radius: 1.4rem; display: flex; align-items: center; justify-content: space-around; padding: 0 0.4rem; box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 50; }
+.nav-item { color: var(--muted); font-weight: 700; text-align: center; flex: 1; font-size: 0.6rem; cursor: pointer; padding: 0.3rem 0; border-radius: 0.7rem; }
+.nav-active { color: var(--primary) !important; background: var(--primary-bg); }
+.nav-pos-fab { flex: 1; text-align: center; margin-top: -1.2rem; cursor: pointer; }
+.fab-btn { width: 2.8rem; height: 2.8rem; background: var(--primary); color: var(--on-primary); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 4px 14px rgba(201,162,39,0.4); border: 2px solid var(--bg-color); }
+.chart-container { position: relative; width: 100%; height: 140px; }
+canvas { width: 100%; height: 100%; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.receipt-box { font-family: 'JetBrains Mono', monospace; background: #fff8dc; color: #1e293b; padding: 0.8rem; border-radius: 0.5rem; font-size: 0.75rem; white-space: pre-wrap; word-break: break-all; }
+#toast-wrap { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 0.4rem; align-items: center; width: 90%; max-width: 400px; }
+.toast { background: #1e293b; color: #fff; padding: 0.6rem 1rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: toastIn 0.2s ease-out; text-align: center; }
+.toast.ok { background: var(--accent-green); } .toast.err { background: var(--accent-rose); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.margin-box { background: var(--primary-bg); border-radius: 0.5rem; padding: 0.5rem; font-size: 0.7rem; margin-top: 0.3rem; border: 1px dashed var(--primary); }
+#auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+#auth-screen .glass-card { width: 320px; }
+.badge-master { color: var(--primary); } .badge-staff { color: var(--muted); }
+.tab-row { display: flex; gap: 0.3rem; margin-bottom: 0.8rem; }
+.tab-btn { flex: 1; background: var(--input-bg); border: 1px solid var(--card-border); color: var(--muted); font-size: 0.65rem; }
+.tab-btn.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.invite-code-box { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 800; text-align: center; letter-spacing: 3px; background: var(--primary-bg); color: var(--primary); border-radius: 0.5rem; padding: 0.6rem; margin: 0.4rem 0; border: 1px dashed var(--primary); }
+.low-stock-banner { background: rgba(193,68,58,0.1); border: 1.5px dashed var(--accent-rose); border-radius: 0.6rem; padding: 0.6rem 0.8rem; margin-bottom: 0.6rem; font-size: 0.72rem; color: var(--accent-rose); cursor: pointer; font-weight: 600; }
+.offline-banner { background: rgba(139,144,163,0.12); border: 1.5px dashed var(--muted); border-radius: 0.6rem; padding: 0.55rem 0.8rem; margin: 0 0 0.6rem; font-size: 0.7rem; color: var(--muted); font-weight: 700; text-align: center; }
+.cat-tab-row { display: flex; gap: 0.3rem; overflow-x: auto; margin-bottom: 0.5rem; padding-bottom: 0.2rem; }
+.cat-tab { flex-shrink: 0; background: var(--card-bg); border: 1px solid var(--card-border); color: var(--muted); font-size: 0.65rem; padding: 0.35rem 0.7rem; border-radius: 1rem; white-space: nowrap; }
+.cat-tab.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.menu-thumb { width: 100%; height: 60px; object-fit: cover; border-radius: 0.4rem; margin-bottom: 0.3rem; background: var(--input-bg); }
+.onboard-card { background: var(--primary-bg); border: 1.5px dashed var(--primary); border-radius: 0.75rem; padding: 1rem; text-align: center; margin-bottom: 0.8rem; }
+.onboard-step { display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; padding: 0.4rem 0; text-align: left; }
+.onboard-step .num { width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: var(--on-primary); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 900; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+.pay-method-row { display: flex; gap: 0.3rem; margin: 0.4rem 0; }
+.pay-btn { flex: 1; background: var(--input-bg); border: 1.5px solid var(--card-border); color: var(--muted); font-size: 0.7rem; padding: 0.5rem; }
+.pay-btn.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.mono-num { font-family: 'JetBrains Mono', monospace; }
+#kpi-total, #kpi-cogs, #kpi-profit, #kpi-vat, #kpi-net, #cart-total-price { font-family: 'JetBrains Mono', monospace; }
+/* 티켓 스텁 시그니처: 장바구니 카드를 실제 영수증처럼 */
+.ticket-card { position: relative; }
+.ticket-card::before, .ticket-card::after {
+  content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; border-radius: 50%; background: var(--bg-color);
+  box-shadow: 0 0 0 1px var(--card-border) inset; z-index: 1;
+}
+.ticket-card::before { left: -9px; }
+.ticket-card::after { right: -9px; }
+.ticket-divider { border-top: 2px dashed var(--card-border); margin: 0.55rem 0; }
+
+/* ============================================================
+   온보딩 프리스크린 (가입 전 가치 훅 + 인터랙티브 계산기)
+   ============================================================ */
+#onboard-flow { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+#onboard-flow .glass-card { width: 320px; }
+.onboard-eyebrow { font-size: 0.6rem; font-weight: 800; color: var(--primary); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.3rem; }
+.onboard-h1 { font-size: 1.25rem; font-weight: 800; line-height: 1.4; letter-spacing: -0.01em; margin-bottom: 0.6rem; }
+.onboard-h1 .accent { color: var(--primary); }
+.onboard-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.55; margin-bottom: 0.9rem; }
+.ledger-example { border-top: 1px solid var(--text-color); margin-top: 0.4rem; }
+.ledger-example .row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px dashed var(--card-border); font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; }
+.ledger-example .row:last-child { border-bottom: none; font-weight: 800; }
+.ledger-example .row .label { color: var(--muted); }
+.ledger-example .row.profit .val { color: var(--accent-green); }
+.onboard-skip { display: block; text-align: center; font-size: 0.65rem; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; background: none; border: none; cursor: pointer; margin-top: 0.7rem; width: 100%; }
+.calc-slider-field { margin-top: 0.75rem; }
+.calc-slider-field .cs-label { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 0.3rem; }
+.calc-slider-field .cs-label .cs-num { color: var(--text-color); font-weight: 800; font-size: 0.72rem; }
+.calc-slider-field input[type=range] { -webkit-appearance: none; height: 3px; background: var(--card-border); outline: none; border-radius: 2px; margin: 0; }
+.calc-slider-field input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); border: 2px solid var(--bg-color); cursor: pointer; margin-top: -6.5px; box-shadow: 0 0 0 1px var(--primary); }
+.calc-result-line { margin-top: 0.9rem; padding-top: 0.7rem; border-top: 1px solid var(--text-color); display: flex; justify-content: space-between; align-items: baseline; }
+.calc-result-line .rlabel { font-size: 0.68rem; color: var(--muted); }
+.calc-result-line .rval { font-family: 'JetBrains Mono', monospace; font-size: 1.35rem; font-weight: 800; }
+.calc-insight { margin-top: 0.6rem; font-size: 0.65rem; color: var(--muted); line-height: 1.6; padding: 0.55rem 0.65rem; background: var(--primary-bg); border-left: 2px solid var(--primary); }
+
+/* 빠른 시작 모달 (매장 생성 직후, 첫 재료/메뉴 1개) */
+.qs-step { display: none; }
+.qs-step.active { display: block; }
+.qs-step-label { font-size: 0.6rem; font-weight: 800; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.3rem; }
+</style>
+</head>
+<body>
+<div id="toast-wrap"></div>
+
+<!-- ============================================================
+     온보딩 프리스크린 — 가입 전에 먼저 가치를 보여준다
+     (1) 훅: 실제 계산 예시  (2) 인터랙티브 계산기 → 가입 유도
+     ============================================================ -->
+<div id="onboard-flow" class="hidden-page">
+
+<div id="onboard-hook" class="glass-card text-center">
+<div class="onboard-eyebrow">MARGINNOTE</div>
+<h1 class="onboard-h1">팔수록 남는 게<br>얼마인지, <span class="accent">지금 압니까.</span></h1>
+<p class="onboard-sub">재료비 · 부가세 · 고정비까지 반영한 진짜 순이익. 장부 정리 대신 마진노트가 계산합니다.</p>
+<div class="ledger-example">
+<div class="row"><span class="label">아메리카노 · 판매가</span><span class="val">4,500원</span></div>
+<div class="row"><span class="label">원가 + 부가세 + 고정비</span><span class="val">3,120원</span></div>
+<div class="row profit"><span class="label">실제 순이익</span><span class="val">1,380원 (30.7%)</span></div>
+</div>
+<button onclick="goOnboardCalc()" class="btn-primary" style="margin-top:1rem;">1분이면 압니다 →</button>
+<button onclick="skipOnboarding()" class="onboard-skip">계정이 이미 있어요, 바로 로그인할게요</button>
+</div>
+
+<div id="onboard-calc" class="glass-card text-center hidden-page">
+<div class="onboard-eyebrow">STEP 1 · 직접 계산해보기</div>
+<h1 class="onboard-h1" style="font-size:1.05rem;">내 메뉴로<br>마진을 확인해보세요</h1>
+<div class="calc-slider-field">
+<div class="cs-label"><span>판매가</span><span class="cs-num" id="ob-price-label">8,500원</span></div>
+<input type="range" id="ob-price" min="1000" max="20000" step="100" value="8500" oninput="calcOnboard()">
+</div>
+<div class="calc-slider-field">
+<div class="cs-label"><span>원가 (재료 + 부자재)</span><span class="cs-num" id="ob-cost-label">2,860원</span></div>
+<input type="range" id="ob-cost" min="500" max="15000" step="50" value="2860" oninput="calcOnboard()">
+</div>
+<div class="calc-slider-field">
+<div class="cs-label"><span>고정비 배분 (1개당)</span><span class="cs-num" id="ob-fixed-label">900원</span></div>
+<input type="range" id="ob-fixed" min="0" max="5000" step="50" value="900" oninput="calcOnboard()">
+</div>
+<div class="calc-result-line">
+<span class="rlabel">실제 순이익</span>
+<span class="rval" id="ob-profit-val" style="color:var(--accent-green);">4,740원</span>
+</div>
+<p id="ob-rate-tag" style="font-family:'JetBrains Mono', monospace; font-size:0.62rem; color:var(--accent-green); margin-top:0.2rem;">마진율 55.8%</p>
+<div class="calc-insight" id="ob-insight">보통 카페 메뉴 마진율은 45~60% 구간입니다. 지금 이 메뉴는 평균보다 높은 편이에요.</div>
+<button onclick="proceedToSignupFromCalc()" class="btn-primary" style="margin-top:0.8rem;">내 매장 마진, 계속 관리하기 →</button>
+<button onclick="skipOnboarding()" class="onboard-skip">건너뛰고 가입하기</button>
+</div>
+
+</div>
+
+<!-- 인증 화면 -->
+<div id="auth-screen" class="hidden-page">
+<div class="glass-card text-center">
+<h1 style="margin-bottom:0.3rem;">마진노트</h1>
+<div style="width:36px; height:2px; background:var(--primary); margin:0 auto 0.5rem;"></div>
+<p class="sub-title" style="margin-bottom:1rem;">1인 사장님을 위한 마진 관리 장부</p>
+
+<div class="tab-row">
+<button class="tab-btn active" id="tab-login" onclick="switchAuthTab('login')">로그인</button>
+<button class="tab-btn" id="tab-create" onclick="switchAuthTab('create')">매장 만들기</button>
+<button class="tab-btn" id="tab-join" onclick="switchAuthTab('join')">초대코드 합류</button>
+</div>
+
+<div id="auth-form-login">
+<input type="email" id="login-email" placeholder="이메일" autocomplete="username">
+<input type="password" id="login-pw" placeholder="비밀번호" autocomplete="current-password">
+<button onclick="loginUser()" class="btn-primary" style="margin-top:0.3rem;">로그인</button>
+</div>
+
+<div id="auth-form-create" class="hidden-page">
+<input type="text" id="create-store-name" placeholder="매장 이름 (예: 형준카페)">
+<input type="text" id="create-my-name" placeholder="내 이름">
+<input type="email" id="create-email" placeholder="이메일" autocomplete="username">
+<input type="password" id="create-pw" placeholder="비밀번호 (6자리 이상)" autocomplete="new-password">
+<button onclick="createStoreAccount()" class="btn-primary" style="margin-top:0.3rem;">매장 만들고 시작하기</button>
+<p style="font-size:0.58rem; color:var(--muted); margin-top:0.5rem;">이 매장의 첫 관리자 계정이 만들어집니다.</p>
+</div>
+
+<div id="auth-form-join" class="hidden-page">
+<input type="text" id="join-code" placeholder="초대코드 (관리자에게 받은 코드)" style="text-transform:uppercase;">
+<input type="text" id="join-my-name" placeholder="내 이름">
+<input type="email" id="join-email" placeholder="이메일" autocomplete="username">
+<input type="password" id="join-pw" placeholder="비밀번호 (6자리 이상)" autocomplete="new-password">
+<button onclick="joinStoreAccount()" class="btn-primary" style="margin-top:0.3rem;">직원으로 합류하기</button>
+</div>
+
+</div>
+</div>
+
+<!-- 앱 본체 -->
+<div id="app-root" class="app-container hidden-page">
+<header>
+<div><h1 id="header-store-name">매장</h1><p class="sub-title">MARGINNOTE</p></div>
+<div style="display: flex; gap: 0.3rem; align-items: center;">
+<span id="role-display-badge" class="role-badge badge-staff">👤 STAFF</span>
+<button onclick="toggleDark()" style="background:#334155; color:#fff;">🌓</button>
+<button onclick="logoutUser()" style="background:#64748b; color:#fff; font-size:0.65rem;">🚪</button>
+</div>
+</header>
+<div id="offline-banner-slot"></div>
+<main>
+
+<section id="page-pos" class="page-content">
+<div id="low-stock-banner-slot"></div>
+<div id="pos-onboard-slot"></div>
+<div style="margin-bottom:0.4rem;"><input type="text" id="pos-search-input" placeholder="🔍 메뉴 빠른 검색..." oninput="renderQuickSales()"></div>
+<div id="cat-tabs-slot"></div>
+<div id="quick-sale-btns" class="grid-2" style="margin-bottom:0.5rem;"></div>
+<div class="glass-card ticket-card" style="border: 2px solid var(--primary);">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+<h3 style="font-size:0.75rem; font-weight:900;">🛒 주문 장바구니</h3>
+<button onclick="clearCart()" class="btn-sm" style="background:#64748b; color:#fff; padding:2px 6px;">🗑️ 전체 비우기</button>
+</div>
+<div id="cart-items-list" style="min-height:30px; max-height:120px; overflow-y:auto; font-size:0.75rem; margin-bottom:0.4rem;"></div>
+<input type="text" id="cart-order-note" placeholder="📝 주문 특이사항">
+<input type="tel" id="cart-customer-phone" placeholder="📞 단골 손님 전화번호 뒷 4자리 (선택)" maxlength="4" inputmode="numeric">
+<div class="pay-method-row">
+<button type="button" class="pay-btn active" id="pay-cash" onclick="selectPayMethod('현금')">💵 현금</button>
+<button type="button" class="pay-btn" id="pay-card" onclick="selectPayMethod('카드')">💳 카드</button>
+<button type="button" class="pay-btn" id="pay-mobile" onclick="selectPayMethod('간편결제')">📱 간편결제</button>
+</div>
+<div class="ticket-divider"></div>
+<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; font-weight:900;">
+<span>총액: <b id="cart-total-price" style="color:var(--primary);">0원</b></span>
+<button id="checkout-btn" onclick="checkoutCart()" style="background:var(--primary); color:var(--on-primary); padding:0.5rem 1rem;">결제 승인</button>
+</div>
+</div>
+<div class="glass-card">
+<h3 style="font-size:0.75rem; font-weight:900; margin-bottom:0.4rem; color:var(--muted);">🕒 최근 결제 (실시간, 최신 5건)</h3>
+<div id="recent-sales-list"></div>
+</div>
+</section>
+
+<section id="page-report" class="page-content hidden-page">
+<div class="glass-card" style="background: #1e1b4b; color: white; display: flex; justify-content: space-between; align-items: center;">
+<div><p style="font-size: 0.65rem; color: #a5b4fc;">종합 경영 보고서</p><p style="font-size: 0.8rem; font-weight: 900;">기간별 손익 요약</p></div>
+<div style="display:flex; flex-direction:column; gap:0.25rem;">
+<button onclick="exportDashboardReport()" style="background: var(--primary); color: var(--on-primary); font-size: 0.6rem; padding:0.3rem 0.5rem;">📥 메뉴별 CSV</button>
+<button onclick="exportTaxReport()" style="background: #f59e0b; color: #1e1b4b; font-size: 0.6rem; padding:0.3rem 0.5rem;">🧾 세무사 전달용</button>
+</div>
+</div>
+<div style="margin-bottom:0.4rem;"><select id="sales-period" onchange="renderDashboard()">
+<option value="day">오늘</option><option value="week">최근 7일</option><option value="month">이번 달</option><option value="year">올해</option></select></div>
+<div class="grid-3">
+<div class="glass-card text-center" style="background: #0f172a; color: white;"><p style="font-size: 0.6rem; color: #94a3b8;">총 매출</p><p id="kpi-total" style="font-size: 0.8rem; font-weight: 900;">0원</p><p id="kpi-total-change" style="font-size:0.58rem; margin-top:2px;"></p></div>
+<div class="glass-card text-center" style="border-color: #f59e0b;"><p style="font-size: 0.6rem; color: #f59e0b;">매출원가</p><p id="kpi-cogs" style="font-size: 0.8rem; font-weight: 900; color: #f59e0b;">0원</p></div>
+<div class="glass-card text-center" style="border-color: #10b981;"><p style="font-size: 0.6rem; color: #10b981;">매출총이익</p><p id="kpi-profit" style="font-size: 0.8rem; font-weight: 900; color: #10b981;">0원</p></div>
+</div>
+<div class="grid-3">
+<div class="glass-card text-center" style="border-color: #94a3b8;"><p style="font-size: 0.6rem; color: var(--muted);">부가세 예상(10%)</p><p id="kpi-vat" style="font-size: 0.78rem; font-weight: 900;">-</p></div>
+<div class="glass-card text-center" style="border-color: #f43f5e;"><p style="font-size: 0.6rem; color: #f43f5e;">변동비 지출</p><p id="kpi-var-expense" style="font-size: 0.78rem; font-weight: 900; color: #f43f5e;">0원</p></div>
+<div class="glass-card text-center" style="border-color: var(--primary); background: var(--primary-bg);"><p style="font-size: 0.6rem; color: var(--primary);">진짜 순이익(고정비+지출 반영)</p><p id="kpi-net" style="font-size: 0.78rem; font-weight: 900; color: var(--primary);">0원</p></div>
+</div>
+<div class="glass-card" id="expense-card">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+<h3 style="font-size:0.75rem; font-weight:900;">💸 변동비 지출 관리</h3>
+<span style="font-size:0.6rem; color:var(--muted);">선택한 기간(위 드롭다운) 기준</span>
+</div>
+<p style="font-size:0.58rem; color:var(--muted); margin-bottom:0.4rem;">카드수수료·배달앱 수수료·포장재 등, [설정]의 "월 고정비"에는 안 들어가지만 매출에 따라 들쭉날쭉 나가는 돈을 기록합니다. 재료비(원가)는 여기 넣지 마세요 — 재고 등록 시 이미 자동 반영됩니다.</p>
+<div class="grid-2">
+<input type="number" id="in-expense-amount" placeholder="금액(원)">
+<select id="in-expense-category">
+<option value="카드수수료">카드수수료</option>
+<option value="배달앱수수료">배달앱 수수료</option>
+<option value="포장재/소모품">포장재·소모품</option>
+<option value="마케팅/광고">마케팅·광고</option>
+<option value="수리/유지보수">수리·유지보수</option>
+<option value="기타">기타</option>
+</select>
+</div>
+<input type="text" id="in-expense-memo" placeholder="메모 (선택)">
+<button onclick="addExpense()" class="btn-primary" style="margin-top:0.3rem;">지출 등록</button>
+<div id="expense-list" style="margin-top:0.5rem; font-size:0.7rem;"></div>
+</div>
+<div class="glass-card"><h3 style="font-size: 0.8rem; font-weight: 900; margin-bottom: 0.4rem;">기간 내 매출 추이</h3><div class="chart-container"><canvas id="pureCanvasChart"></canvas></div></div>
+<div class="glass-card"><h3 style="font-size: 0.75rem; font-weight: 900; margin-bottom: 0.4rem;">💳 결제수단별 집계</h3><div id="pay-method-rank-list" style="font-size:0.72rem;"></div></div>
+<div class="glass-card"><h3 style="font-size: 0.75rem; font-weight: 900; margin-bottom: 0.4rem;">📊 메뉴별 판매 순위</h3><div id="menu-rank-list" style="font-size:0.72rem;"></div></div>
+<div class="glass-card" id="benchmark-card">
+<h3 style="font-size: 0.75rem; font-weight: 900; margin-bottom: 0.4rem;">📐 업종별 마진율 벤치마크</h3>
+<div id="benchmark-body"></div>
+</div>
+<div class="glass-card" id="loyal-customer-card">
+<h3 style="font-size: 0.75rem; font-weight: 900; margin-bottom: 0.2rem;">🎫 재방문 · 단골 손님 (최근 90일)</h3>
+<p style="font-size:0.58rem; color:var(--muted); margin-bottom:0.4rem;">POS 결제 시 "전화번호 뒷 4자리"를 입력한 주문만 집계됩니다. 위쪽 기간 선택과 무관하게 항상 최근 90일 기준입니다.</p>
+<div id="loyal-customer-summary" style="margin-bottom:0.4rem;"></div>
+<div id="loyal-customer-list"></div>
+</div>
+</section>
+
+<section id="page-ai" class="page-content hidden-page">
+<div class="glass-card" style="border: 2px solid #c084fc;">
+<h3 style="font-size:0.75rem; font-weight:900; color:#a855f7; margin-bottom:0.4rem;">🔮 AI 매장 분석관</h3>
+<div class="tab-row">
+<button class="tab-btn active" id="ai-tab-managed" onclick="switchAiMode('managed')">🆓 무료 체험 (베타)</button>
+<button class="tab-btn" id="ai-tab-own" onclick="switchAiMode('own')">🔑 내 API 키 사용</button>
+</div>
+<div id="ai-managed-info" style="font-size:0.6rem; color:var(--muted); margin-bottom:0.4rem;">서버에서 관리하는 무료 한도로 동작합니다. 한도를 넘으면 안내 후 "내 API 키 사용"으로 전환하시면 계속 쓸 수 있습니다.</div>
+<input type="password" id="ai-api-key" placeholder="Gemini Key" class="hidden-page" style="width:100%; font-size:0.65rem; margin-bottom:0.4rem;" onchange="saveAiKeyLocal()">
+<div style="display:flex; gap:0.2rem; margin-bottom:0.4rem;">
+<button onclick="askAIQuick('오늘 매출과 손익을 평가해줘')" class="btn-sm" style="background:#e9d5ff; color:#6b21a8;">💡 매출 평가</button>
+<button onclick="askAIQuick('현재 재고 부족 상태를 진단해줘')" class="btn-sm" style="background:#e9d5ff; color:#6b21a8;">⚠️ 재고 진단</button>
+</div>
+<div id="ai-chat-box" style="height:200px; overflow-y:auto; background:var(--input-bg); border-radius:0.6rem; padding:0.5rem; font-size:0.7rem; margin-bottom:0.4rem;">
+<p style="color:#a855f7; font-weight:700;">● AI 분석관 연동 준비 완료. 질문을 입력하세요.</p></div>
+<div style="display:flex; gap:0.25rem;"><input type="text" id="ai-user-msg" placeholder="질문 입력..." style="margin:0;"><button onclick="askAI()" style="background:#a855f7; color:#fff; padding:0 0.8rem; font-size:0.75rem;">전송</button></div>
+</div>
+</section>
+
+<section id="page-raw" class="page-content hidden-page">
+<div id="raw-onboard-slot"></div>
+<div class="glass-card">
+<h3 style="font-size:0.8rem; font-weight:900; margin-bottom:0.4rem;">재고 관리 (실시간 공유 · 평균단가 자동계산)</h3>
+<input type="text" id="in-raw-name" placeholder="재료/굿즈명">
+<div class="grid-2"><select id="in-raw-unit"><option value="g">그램 (g)</option><option value="ea">개 (ea)</option><option value="kg">킬로그램 (kg)</option><option value="L">리터 (L)</option></select><input type="number" id="in-raw-qty" placeholder="입고량"></div>
+<div class="grid-2"><input type="number" id="in-raw-price" placeholder="매입총액(원)"><input type="number" id="in-raw-min" placeholder="재고부족 기준(기본 5)"></div>
+<button onclick="addRawWithAverage()" class="btn-primary" style="margin-top:0.2rem;">입고 등록</button>
+<label class="btn-sm" id="ocr-upload-label" style="display:block; text-align:center; background:var(--input-bg); border:1.5px dashed var(--primary); color:var(--primary); cursor:pointer; margin-top:0.4rem; padding:0.5rem;">
+📷 명세서/영수증 사진으로 자동 입력 (베타)
+<input type="file" id="raw-ocr-file" accept="image/*" capture="environment" style="display:none;" onchange="handleRawOcrFile(event)">
+</label>
+<p id="ocr-status" style="font-size:0.6rem; color:var(--muted); margin-top:0.3rem;"></p>
+</div>
+<div id="raw-inventory-list"></div>
+</section>
+
+<section id="page-recipe" class="page-content hidden-page">
+<div id="recipe-onboard-slot"></div>
+<div class="glass-card" id="csv-import-card">
+<h3 style="font-size:0.75rem; font-weight:900; margin-bottom:0.3rem;">📥 기존 POS 메뉴 CSV로 가져오기</h3>
+<p style="font-size:0.6rem; color:var(--muted); margin-bottom:0.4rem;">토스포스/페이히어 등에서 내보낸 메뉴 목록을 그대로 올려보세요. 형식: <b>메뉴명,가격</b> (한 줄에 하나씩, 첫 줄은 제목이어도 무시됩니다). 레시피는 각 메뉴를 눌러 나중에 추가하시면 됩니다.</p>
+<input type="file" id="csv-import-file" accept=".csv,.txt" onchange="importMenuCsv(event)">
+<p id="csv-import-status" style="font-size:0.62rem; color:var(--muted); margin-top:0.2rem;"></p>
+</div>
+<div class="glass-card">
+<h3 id="recipe-form-title" style="font-size:0.8rem; font-weight:900; color:var(--primary); margin-bottom:0.4rem;">메뉴 & 레시피 등록</h3>
+<input type="text" id="in-menu-name" placeholder="메뉴명">
+<div class="grid-2">
+<select id="in-menu-category">
+<option value="음료">음료</option><option value="디저트">디저트</option><option value="식사">식사</option>
+<option value="주류">주류</option><option value="기타">기타</option>
+</select>
+<input type="text" id="in-menu-image" placeholder="이미지 URL (선택)">
+</div>
+<label class="btn-sm" style="display:block; text-align:center; background:var(--input-bg); border:1px solid var(--card-border); color:var(--muted); cursor:pointer; margin-bottom:0.3rem;">
+📷 사진 파일 업로드 (선택)
+<input type="file" id="in-menu-image-file" accept="image/*" style="display:none;" onchange="handleMenuImageFile(event)">
+</label>
+<div id="menu-image-preview-slot"></div>
+<div style="display:flex; gap:0.25rem;"><select id="sel-raw" style="margin:0;"></select><input type="number" id="in-recipe-qty" placeholder="용량" style="width:70px; margin:0;"><button onclick="addIngredientToTemp()" style="background:var(--primary); color:var(--on-primary); width:36px;">+</button></div>
+<div id="temp-recipe-list" style="display:flex; flex-wrap:wrap; gap:0.2rem; min-height:24px; margin:0.4rem 0;"></div>
+<div class="margin-box">
+<div style="display:flex; justify-content:space-between;"><span>예상 원가</span><b id="calc-cost">0원</b></div>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.3rem;"><span>목표 마진(%)</span><input type="number" id="in-target-margin" value="65" style="width:60px; margin:0; padding:0.2rem;" oninput="updateRecipeCalc()"></div>
+<div style="display:flex; justify-content:space-between; margin-top:0.3rem;"><span>추천 판매가</span><b id="calc-suggest" style="color:var(--primary);">0원</b></div>
+</div>
+<input type="number" id="in-menu-price" placeholder="최종판매가(원)" style="font-weight:800; margin-top:0.4rem;" oninput="updateRecipeCalc()">
+<div id="calc-real-margin" style="font-size:0.68rem; color:var(--muted); margin-bottom:0.3rem;"></div>
+<div class="grid-2"><button onclick="saveMenu()" class="btn-primary">저장</button><button onclick="cancelEditMenu()" style="background:#64748b; color:#fff;">취소/신규</button></div>
+</div>
+<div id="saved-menu-list"></div>
+</section>
+
+<section id="page-setting" class="page-content hidden-page">
+<div class="glass-card">
+<h3 style="font-size:0.75rem; font-weight:800; margin-bottom:0.4rem;">🏪 매장 정보</h3>
+<p id="my-account-info" style="font-size:0.7rem;"></p>
+</div>
+<div id="biz-settings-card" class="glass-card hidden-page">
+<h3 style="font-size:0.75rem; font-weight:800; margin-bottom:0.4rem;">💰 사업 설정 (부가세 · 고정비)</h3>
+<p style="font-size:0.6rem; color:var(--muted); margin-bottom:0.4rem;">리포트의 부가세 예상액, 진짜 순이익 계산에 사용됩니다.</p>
+<label style="display:flex; align-items:center; gap:0.4rem; font-size:0.72rem; margin-bottom:0.4rem;">
+<input type="checkbox" id="in-vat-enabled" style="width:auto; margin:0;"> 부가세 신고 대상 (일반과세자)
+</label>
+<div class="grid-2">
+<input type="number" id="in-vat-rate" placeholder="부가세율 % (기본 10)">
+<div></div>
+</div>
+<p style="font-size:0.68rem; font-weight:800; margin:0.4rem 0 0.2rem;">월 고정비</p>
+<div class="grid-3">
+<input type="number" id="in-fixed-rent" placeholder="임대료">
+<input type="number" id="in-fixed-labor" placeholder="인건비">
+<input type="number" id="in-fixed-util" placeholder="기타(공과금 등)">
+</div>
+<p style="font-size:0.68rem; font-weight:800; margin:0.5rem 0 0.2rem;">📐 업종별 마진율 벤치마크</p>
+<p style="font-size:0.58rem; color:var(--muted); margin-bottom:0.3rem;">업종을 고르면 참고용 마진율 범위를 채워드립니다. 공식 통계가 아닌 외식업 통상 참고치이니, 우리 매장 사정에 맞게 숫자를 직접 조정하세요.</p>
+<div class="grid-2">
+<select id="in-biz-type">
+<option value="cafe">카페 · 디저트</option>
+<option value="snack">분식 · 간식</option>
+<option value="korean">한식 · 국밥/탕류</option>
+<option value="bbq">치킨 · 고기/구이</option>
+<option value="pub">술집 · 호프</option>
+<option value="bakery">베이커리</option>
+<option value="delivery">배달 전문</option>
+<option value="seafood">횟집 · 해산물</option>
+<option value="etc">기타</option>
+</select>
+<button type="button" onclick="applyBenchmarkSuggestion()" class="btn-sm" style="background:var(--input-bg); border:1px solid var(--card-border); color:var(--muted);">추천값 채우기</button>
+</div>
+<div class="grid-2" style="margin-top:0.3rem;">
+<input type="number" id="in-benchmark-low" placeholder="벤치마크 마진율 하한(%)">
+<input type="number" id="in-benchmark-high" placeholder="벤치마크 마진율 상한(%)">
+</div>
+<button onclick="saveBizSettings()" class="btn-primary" style="margin-top:0.3rem;">사업 설정 저장</button>
+</div>
+<div id="invite-card" class="glass-card hidden-page">
+<h3 style="font-size:0.75rem; font-weight:800; margin-bottom:0.4rem;">👥 직원 초대</h3>
+<p style="font-size:0.62rem; color:var(--muted); margin-bottom:0.3rem;">이 코드를 직원에게 알려주면, 로그인 화면의 "초대코드 합류" 탭에서 스스로 계정을 만들 수 있습니다.</p>
+<div class="invite-code-box" id="invite-code-display">------</div>
+<div class="grid-2">
+<button onclick="copyInviteCode()" class="btn-sm" style="background:#334155; color:#fff;">📋 코드 복사</button>
+<button onclick="regenerateInviteCode()" class="btn-sm" style="background:#e11d48; color:#fff;">🔄 코드 재발급</button>
+</div>
+</div>
+<div id="multi-store-card" class="glass-card hidden-page">
+<h3 style="font-size:0.75rem; font-weight:800; margin-bottom:0.4rem;">🏪 매장 전환 / 추가 (베타)</h3>
+<p style="font-size:0.62rem; color:var(--muted); margin-bottom:0.4rem;">여러 매장을 운영 중이면 여기서 전환하거나 새로 추가할 수 있습니다.</p>
+<div id="store-switcher-slot" style="margin-bottom:0.5rem;"></div>
+<input type="text" id="in-new-store-name" placeholder="새 매장 이름 (예: 형준카페 2호점)">
+<button onclick="createAdditionalStore()" class="btn-primary" style="margin-top:0.3rem;">+ 새 매장 추가</button>
+<p style="font-size:0.58rem; color:var(--muted); margin-top:0.4rem;">⚠️ 보안규칙이 최신 버전으로 배포되어 있어야 정상 동작합니다.</p>
+</div>
+<div class="glass-card">
+<h3 style="font-size:0.75rem; font-weight:800; margin-bottom:0.4rem;">📊 구글 스프레드시트 내보내기</h3>
+<p style="font-size:0.62rem; color:var(--muted); margin-bottom:0.4rem;">실시간 DB가 이미 원본이므로, 이 동기화는 회계용 백업/공유 목적입니다.</p>
+<input type="text" id="sheet-sync-url" placeholder="https://script.google.com/macros/s/.../exec" onchange="saveSyncUrlLocal()">
+<button onclick="syncToSheets()" class="btn-primary" style="background:#0f9d58; margin-top:0.3rem;">☁️ 지금 동기화</button>
+<p id="sync-last-info" style="font-size:0.6rem; color:var(--muted); margin-top:0.3rem;">아직 동기화한 적 없음</p>
+</div>
+<div class="glass-card">
+<h3 style="font-size:0.75rem; font-weight:800; margin-bottom:0.4rem;">🏁 마감 정산 (관리자 전용)</h3>
+<button onclick="closeDay()" class="btn-primary" style="background:#334155;">오늘 매출 마감 요약 보기</button>
+</div>
+</section>
+
+</main>
+<nav>
+<div onclick="showPage('recipe')" id="nav-recipe" class="nav-item">📝<br>메뉴</div>
+<div onclick="showPage('raw')" id="nav-raw" class="nav-item">📦<br>재고</div>
+<div onclick="showPage('report')" id="nav-report" class="nav-item">📊<br>분석</div>
+<div onclick="showPage('ai')" id="nav-ai" class="nav-pos-fab"><div class="fab-btn">🔮</div></div>
+<div onclick="showPage('pos')" id="nav-pos" class="nav-item">💰<br>POS</div>
+<div onclick="showPage('setting')" id="nav-setting" class="nav-item">⚙️<br>설정</div>
+</nav>
+</div>
+
+<div id="quick-start-modal" class="modal-overlay hidden-page">
+<div class="glass-card" style="width: 300px;">
+
+<div id="qs-step-raw" class="qs-step active">
+<div class="qs-step-label">STEP 1 · 재료 1개만</div>
+<h3 style="font-size:0.85rem; font-weight:900; margin-bottom:0.3rem;">전부 채우지 않아도 됩니다</h3>
+<p style="font-size:0.65rem; color:var(--muted); margin-bottom:0.6rem;">가장 많이 쓰는 재료 하나만 넣어도 바로 마진을 볼 수 있어요.</p>
+<input type="text" id="qs-raw-name" placeholder="재료명 (예: 원두)">
+<div class="grid-2"><input type="number" id="qs-raw-qty" placeholder="입고량 (예: 1000)"><select id="qs-raw-unit"><option value="g">그램 (g)</option><option value="ea">개 (ea)</option><option value="kg">킬로그램 (kg)</option><option value="L">리터 (L)</option></select></div>
+<input type="number" id="qs-raw-price" placeholder="매입총액(원)">
+<button onclick="quickAddRawStep()" class="btn-primary" style="margin-top:0.3rem;">다음: 메뉴 만들기 →</button>
+<button onclick="closeQuickStart()" class="onboard-skip">나중에 하기</button>
+</div>
+
+<div id="qs-step-menu" class="qs-step">
+<div class="qs-step-label">STEP 2 · 메뉴 1개만</div>
+<h3 style="font-size:0.85rem; font-weight:900; margin-bottom:0.3rem;">이 재료로 메뉴를 만들어보세요</h3>
+<p style="font-size:0.65rem; color:var(--muted); margin-bottom:0.6rem;" id="qs-menu-hint">방금 등록한 재료가 자동으로 연결됩니다.</p>
+<input type="text" id="qs-menu-name" placeholder="메뉴명 (예: 아메리카노)">
+<input type="number" id="qs-menu-price" placeholder="판매가(원)">
+<button onclick="quickAddMenuStep()" class="btn-primary" style="margin-top:0.3rem;">등록하고 시작하기 →</button>
+<button onclick="closeQuickStart()" class="onboard-skip">나중에 하기</button>
+</div>
+
+<div style="margin-top:0.6rem; text-align:center; font-size:0.6rem; color:var(--muted);">
+메뉴가 많으신가요? <span style="color:var(--primary); font-weight:700; cursor:pointer; text-decoration:underline;" onclick="closeQuickStartToCsv()">CSV로 한번에 가져오기 →</span>
+</div>
+
+</div>
+</div>
+
+<div id="receipt-modal" class="modal-overlay hidden-page">
+<div class="glass-card" style="width: 290px;">
+<h3 style="font-size: 0.85rem; font-weight: 900; text-align: center; margin-bottom: 0.4rem;">🧾 결제 영수증</h3>
+<div id="receipt-content-box" class="receipt-box"></div>
+<div class="grid-2" style="margin-top:0.5rem;"><button onclick="copyReceiptText()" style="background:var(--accent-green); color:#fff;">📋 복사</button><button onclick="closeReceiptModal()" class="btn-primary">닫기</button></div>
+</div>
+</div>
+
+<script type="module">
+// ============================================================
+// [중요] firebaseConfig 값을 본인 Firebase 프로젝트 설정으로 교체하세요.
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  initializeFirestore, persistentLocalCache, persistentSingleTabManager,
+  doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, collection, query, orderBy, limit, where, getDocs,
+  runTransaction, serverTimestamp, Timestamp
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+import {
+  getFunctions, httpsCallable
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-functions.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIByk2vwokG6ttJu9_NWiT4YgQ1Hm-KGw",
+  authDomain: "project-0507-98f2d.firebaseapp.com",
+  projectId: "project-0507-98f2d",
+  storageBucket: "project-0507-98f2d.firebasestorage.app",
+  messagingSenderId: "472823171098",
+  appId: "1:472823171098:web:89f3116c179921b59c29a3"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const authFs = getAuth(fbApp);
+const storageFs = getStorage(fbApp);
+// 관리형 AI 분석관(무료 체험) 호출용. 리전은 functions/index.js의 배포 리전과 반드시 일치해야 함.
+const functionsFs = getFunctions(fbApp, 'asia-northeast3');
+// 오프라인 캐시 활성화: 인터넷이 끊겨도 마지막으로 받은 재고/메뉴 데이터를 계속 보여주고,
+// 쓰기 작업은 로컬에 쌓아뒀다가 연결되면 자동으로 서버에 반영합니다.
+let dbFs;
+try {
+  dbFs = initializeFirestore(fbApp, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager({}) }) });
+} catch(e) {
+  // 오프라인 캐시를 지원하지 않는 환경(구형 브라우저 등)이면 온라인 전용 모드로 폴백
+  console.warn('오프라인 캐시 비활성화:', e);
+  dbFs = initializeFirestore(fbApp, {});
+}
+
+// ---------- 온라인/오프라인 상태 감지 ----------
+let isOnline = navigator.onLine;
+window.addEventListener('online', function() { isOnline = true; renderOfflineBanner(); toast('🔌 인터넷 연결됨 - 대기 중이던 작업을 동기화합니다', 'ok'); });
+window.addEventListener('offline', function() { isOnline = false; renderOfflineBanner(); toast('📴 오프라인 상태 - 결제는 계속 가능하며, 연결되면 자동 동기화됩니다', 'err'); });
+
+function requireOnline(actionLabel) {
+  if(isOnline) return true;
+  toast('📴 오프라인 상태입니다. ' + (actionLabel || '이 작업') + '은(는) 인터넷 연결 후 다시 시도해주세요.', 'err');
+  return false;
+}
+
+function renderOfflineBanner() {
+  const slot = document.getElementById('offline-banner-slot');
+  if(!slot) return;
+  slot.innerHTML = isOnline ? '' : '<div class="offline-banner">📴 오프라인 — 결제는 계속됩니다. 재고 입고·환불·메뉴 수정은 인터넷 연결 후 가능합니다.</div>';
+}
+
+// ---------- 전역 상태 ----------
+let myProfile = null;   // { storeId, role, name, email }
+let storeInfo = null;   // { name, ownerUid, currentInviteCode }
+let rawCache = [];
+let menuCache = [];
+let recentSalesCache = [];
+let cart = [];
+let currentPayMethod = '현금';
+let currentCategoryFilter = '전체';
+let tempRecipe = [];
+let editingMenuId = null;
+let currentPage = 'pos';
+let listenersAttached = false;
+let signupInProgress = false;
+let justCreatedStore = false;   // 방금 매장을 새로 만들었는지 (빠른 시작 모달 트리거용)
+let quickStartRawId = null;     // 빠른 시작 STEP 1에서 만든 재료 id (STEP 2에서 레시피에 연결)
+let localPrefs = JSON.parse(localStorage.getItem('CLOUD_POS_LOCAL_PREFS') || '{}');
+
+function saveLocalPrefs() { localStorage.setItem('CLOUD_POS_LOCAL_PREFS', JSON.stringify(localPrefs)); }
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function toast(msg, type) {
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.innerText = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 2400);
+}
+function startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function toDate(v) { return v && v.toDate ? v.toDate() : new Date(v); }
+function generateInviteCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 헷갈리는 0/O, 1/I 제외
+  let out = '';
+  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+// ---------- 매장 범위 Firestore 경로 헬퍼 ----------
+function storeCol(name) { return collection(dbFs, 'stores', myProfile.storeId, name); }
+function storeDocRef(name, id) { return doc(dbFs, 'stores', myProfile.storeId, name, id); }
+
+// ============================================================
+// 인증 화면 탭 전환
+// ============================================================
+window.switchAuthTab = function(tab) {
+  ['login','create','join'].forEach(function(t) {
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('auth-form-' + t).classList.toggle('hidden-page', t !== tab);
+  });
+};
+
+// ============================================================
+// 로그인 / 회원가입(신규 매장) / 합류(초대코드)
+// ============================================================
+window.loginUser = function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-pw').value;
+  if(!email || !pw) return toast('이메일과 비밀번호를 입력하세요.', 'err');
+  signInWithEmailAndPassword(authFs, email, pw).catch(function(err) {
+    toast('로그인 실패: ' + err.message, 'err');
+  });
+};
+
+window.createStoreAccount = async function() {
+  const storeName = document.getElementById('create-store-name').value.trim();
+  const myName = document.getElementById('create-my-name').value.trim();
+  const email = document.getElementById('create-email').value.trim();
+  const pw = document.getElementById('create-pw').value;
+  if(!storeName || !myName || !email || pw.length < 6) return toast('모든 항목을 입력하세요 (비밀번호 6자리 이상).', 'err');
+
+  signupInProgress = true;
+  let cred;
+  try {
+    cred = await createUserWithEmailAndPassword(authFs, email, pw);
+    const uid = cred.user.uid;
+    const storeRef = doc(collection(dbFs, 'stores'));
+    const storeId = storeRef.id;
+
+    await setDoc(storeRef, { name: storeName, ownerUid: uid, createdAt: serverTimestamp(), plan: 'trial', currentInviteCode: null });
+    // storeIds: 다중 매장 지원용 소속 매장 목록. 최초 가입 시엔 항상 [storeId] 하나짜리.
+    await setDoc(doc(dbFs, 'users', uid), { storeId: storeId, role: 'master', name: myName, email: email, storeIds: [storeId] });
+
+    let code = generateInviteCode();
+    for(let i = 0; i < 5; i++) {
+      const exists = await getDoc(doc(dbFs, 'inviteCodes', code));
+      if(!exists.exists()) break;
+      code = generateInviteCode();
+    }
+    await setDoc(doc(dbFs, 'inviteCodes', code), { storeId: storeId });
+    await updateDoc(storeRef, { currentInviteCode: code });
+
+    toast('매장이 생성되었습니다!', 'ok');
+    signupInProgress = false;
+    justCreatedStore = true; // enterApp이 recipe 페이지를 그린 뒤 빠른 시작 모달을 띄우게 함
+    await enterApp(cred.user);
+  } catch(err) {
+    signupInProgress = false;
+    toast('생성 실패: ' + err.message, 'err');
+    // Firestore 쓰기 중간에 실패해 인증 계정만 만들어진 상태라면 정리 차원에서 로그아웃
+    if(cred) { try { await signOut(authFs); } catch(e) {} }
+  }
+};
+
+window.joinStoreAccount = async function() {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  const myName = document.getElementById('join-my-name').value.trim();
+  const email = document.getElementById('join-email').value.trim();
+  const pw = document.getElementById('join-pw').value;
+  if(!code || !myName || !email || pw.length < 6) return toast('모든 항목을 입력하세요 (비밀번호 6자리 이상).', 'err');
+
+  signupInProgress = true;
+  let cred;
+  try {
+    cred = await createUserWithEmailAndPassword(authFs, email, pw);
+  } catch(err) {
+    signupInProgress = false;
+    return toast('계정 생성 실패: ' + err.message, 'err');
+  }
+
+  try {
+    const codeSnap = await getDoc(doc(dbFs, 'inviteCodes', code));
+    if(!codeSnap.exists()) {
+      await cred.user.delete().catch(function() {});
+      signupInProgress = false;
+      return toast('유효하지 않은 초대코드입니다.', 'err');
+    }
+    const storeId = codeSnap.data().storeId;
+    // 신규 규칙(create)이 모든 users 문서에 storeIds를 요구하므로 staff 계정도 함께 채운다.
+    // (직원은 매장 전환/추가 대상이 아니므로 이후에도 항상 이 배열 하나로 고정된다.)
+    await setDoc(doc(dbFs, 'users', cred.user.uid), { storeId: storeId, role: 'staff', name: myName, email: email, usedCode: code, storeIds: [storeId] });
+    toast('매장에 합류했습니다!', 'ok');
+    signupInProgress = false;
+    await enterApp(cred.user);
+  } catch(err) {
+    signupInProgress = false;
+    await cred.user.delete().catch(function() {});
+    toast('합류 실패: ' + err.message, 'err');
+  }
+};
+
+window.logoutUser = function() { signOut(authFs); };
+
+async function enterApp(user) {
+  try {
+    const profileSnap = await getDoc(doc(dbFs, 'users', user.uid));
+    if(!profileSnap.exists()) {
+      toast('가입 절차가 완료되지 않은 계정입니다. 다시 가입해주세요.', 'err');
+      await signOut(authFs);
+      return;
+    }
+    myProfile = Object.assign({ uid: user.uid, email: user.email }, profileSnap.data());
+
+    // 다중 매장 마이그레이션: storeIds 필드가 아직 없는 기존(master) 계정이면
+    // 1회성으로 [현재 storeId] 하나짜리 배열을 채워 넣는다 (firestore.rules (C) 규칙과 짝).
+    // 실패해도(예: 규칙 미배포) 로그인 자체는 계속 진행 — 다중 매장 기능만 못 쓸 뿐.
+    if(myProfile.role === 'master' && !myProfile.storeIds) {
+      try {
+        await updateDoc(doc(dbFs, 'users', myProfile.uid), { storeIds: [myProfile.storeId] });
+        myProfile.storeIds = [myProfile.storeId];
+      } catch(e) {
+        console.warn('storeIds 마이그레이션 실패(규칙 미배포 가능성):', e);
+        myProfile.storeIds = [myProfile.storeId];
+      }
+    } else if(!myProfile.storeIds) {
+      myProfile.storeIds = [myProfile.storeId];
+    }
+
+    const storeSnap = await getDoc(doc(dbFs, 'stores', myProfile.storeId));
+    storeInfo = storeSnap.exists() ? storeSnap.data() : { name: '내 매장' };
+
+    document.getElementById('auth-screen').classList.add('hidden-page');
+    document.getElementById('app-root').classList.remove('hidden-page');
+    document.getElementById('header-store-name').innerText = storeInfo.name || '내 매장';
+    updateRoleBadge();
+    renderOfflineBanner();
+    document.getElementById('my-account-info').innerText = (myProfile.name || '') + ' (' + myProfile.email + ') · 권한: ' + (myProfile.role === 'master' ? '관리자' : '직원') + '\n소속 매장: ' + (storeInfo.name || '');
+    document.getElementById('invite-card').classList.toggle('hidden-page', myProfile.role !== 'master');
+    if(myProfile.role === 'master') renderInviteCode();
+    document.getElementById('multi-store-card').classList.toggle('hidden-page', myProfile.role !== 'master');
+    if(myProfile.role === 'master') renderStoreSwitcher();
+
+    const bizCard = document.getElementById('biz-settings-card');
+    if(bizCard) {
+      bizCard.classList.toggle('hidden-page', myProfile.role !== 'master');
+      if(myProfile.role === 'master') {
+        document.getElementById('in-vat-enabled').checked = !!storeInfo.vatEnabled;
+        document.getElementById('in-vat-rate').value = (storeInfo.vatRate != null) ? storeInfo.vatRate : 10;
+        const fc = storeInfo.fixedCosts || {};
+        document.getElementById('in-fixed-rent').value = fc.rent || '';
+        document.getElementById('in-fixed-labor').value = fc.labor || '';
+        document.getElementById('in-fixed-util').value = fc.util || '';
+        document.getElementById('in-biz-type').value = storeInfo.businessType || 'etc';
+        document.getElementById('in-benchmark-low').value = (storeInfo.benchmarkLow != null) ? storeInfo.benchmarkLow : '';
+        document.getElementById('in-benchmark-high').value = (storeInfo.benchmarkHigh != null) ? storeInfo.benchmarkHigh : '';
+      }
+    }
+
+    if(localPrefs.darkMode) document.body.classList.add('dark');
+    const keyField = document.getElementById('ai-api-key');
+    if(keyField && localPrefs.aiKey) keyField.value = localPrefs.aiKey;
+    const syncField = document.getElementById('sheet-sync-url');
+    if(syncField && localPrefs.sheetSyncUrl) syncField.value = localPrefs.sheetSyncUrl;
+    updateSyncInfo();
+
+    attachListeners();
+    showPage('recipe');
+
+    if(justCreatedStore) {
+      justCreatedStore = false;
+      openQuickStart();
+    }
+  } catch(err) {
+    toast('로그인 처리 중 오류: ' + err.message, 'err');
+  }
+}
+
+// ============================================================
+// 빠른 시작 모달 — 매장 생성 직후, 재료 1개 + 메뉴 1개만 (전체 등록은 나중에)
+// ============================================================
+window.openQuickStart = function() {
+  document.getElementById('qs-step-raw').classList.add('active');
+  document.getElementById('qs-step-menu').classList.remove('active');
+  document.getElementById('quick-start-modal').classList.remove('hidden-page');
+};
+
+window.closeQuickStart = function() {
+  document.getElementById('quick-start-modal').classList.add('hidden-page');
+};
+
+window.closeQuickStartToCsv = function() {
+  closeQuickStart();
+  const card = document.getElementById('csv-import-card');
+  if(card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+window.quickAddRawStep = async function() {
+  const name = document.getElementById('qs-raw-name').value.trim();
+  const qty = Number(document.getElementById('qs-raw-qty').value) || 0;
+  const unit = document.getElementById('qs-raw-unit').value;
+  const price = Number(document.getElementById('qs-raw-price').value) || 0;
+  if(!name || qty <= 0) return toast('재료명과 입고량을 입력하세요.', 'err');
+  try {
+    const rawRef = doc(storeCol('raw'));
+    await setDoc(rawRef, { name: name, unit: unit, qty: qty, unitPrice: qty > 0 ? price / qty : 0, minQty: 5 });
+    quickStartRawId = rawRef.id;
+    document.getElementById('qs-menu-hint').innerText = '"' + name + '"이(가) 자동으로 재료로 연결됩니다.';
+    document.getElementById('qs-step-raw').classList.remove('active');
+    document.getElementById('qs-step-menu').classList.add('active');
+  } catch(err) { toast('재료 등록 실패: ' + err.message, 'err'); }
+};
+
+window.quickAddMenuStep = async function() {
+  const name = document.getElementById('qs-menu-name').value.trim();
+  const price = Number(document.getElementById('qs-menu-price').value) || 0;
+  if(!name || price <= 0) return toast('메뉴명과 판매가를 입력하세요.', 'err');
+  const recipe = quickStartRawId ? [{ rawId: quickStartRawId, qty: 1 }] : [];
+  try {
+    await addDoc(storeCol('menus'), { name: name, price: price, category: '기타', imageUrl: '', recipe: recipe });
+    toast('첫 메뉴가 등록되었습니다. 이제 POS에서 바로 판매할 수 있어요!', 'ok');
+    closeQuickStart();
+  } catch(err) { toast('메뉴 등록 실패: ' + err.message, 'err'); }
+};
+
+onAuthStateChanged(authFs, async function(user) {
+  if(signupInProgress) return; // 가입 절차가 직접 enterApp을 호출하므로 여기서는 개입하지 않음
+  if(user) {
+    document.getElementById('onboard-flow').classList.add('hidden-page');
+    await enterApp(user);
+  } else {
+    myProfile = null; storeInfo = null; listenersAttached = false;
+    document.getElementById('app-root').classList.add('hidden-page');
+    if(localPrefs.onboardingSeen) {
+      document.getElementById('onboard-flow').classList.add('hidden-page');
+      document.getElementById('auth-screen').classList.remove('hidden-page');
+    } else {
+      document.getElementById('auth-screen').classList.add('hidden-page');
+      document.getElementById('onboard-flow').classList.remove('hidden-page');
+    }
+  }
+});
+
+// ============================================================
+// 온보딩 프리스크린 (가입 전 가치 훅 + 인터랙티브 계산기)
+// ============================================================
+window.goOnboardCalc = function() {
+  document.getElementById('onboard-hook').classList.add('hidden-page');
+  document.getElementById('onboard-calc').classList.remove('hidden-page');
+};
+
+window.calcOnboard = function() {
+  const price = parseInt(document.getElementById('ob-price').value, 10);
+  const cost = parseInt(document.getElementById('ob-cost').value, 10);
+  const fixed = parseInt(document.getElementById('ob-fixed').value, 10);
+  document.getElementById('ob-price-label').innerText = price.toLocaleString() + '원';
+  document.getElementById('ob-cost-label').innerText = cost.toLocaleString() + '원';
+  document.getElementById('ob-fixed-label').innerText = fixed.toLocaleString() + '원';
+
+  const vat = Math.round(price * 0.1 / 1.1); // 부가세 추정 (판매가 포함 기준, 사업 설정의 기본 부가세율 10%와 동일한 방식)
+  const profit = price - cost - fixed - vat;
+  const rate = ((profit / price) * 100).toFixed(1);
+
+  const profitEl = document.getElementById('ob-profit-val');
+  const rateEl = document.getElementById('ob-rate-tag');
+  const note = document.getElementById('ob-insight');
+
+  profitEl.innerText = profit.toLocaleString() + '원';
+  profitEl.style.color = profit >= 0 ? 'var(--accent-green)' : 'var(--accent-rose)';
+  rateEl.innerText = '마진율 ' + rate + '%';
+  rateEl.style.color = profit >= 0 ? 'var(--accent-green)' : 'var(--accent-rose)';
+
+  if(profit < 0) note.innerText = '이 구성이면 팔수록 손해입니다. 판매가를 올리거나 원가를 낮춰야 해요.';
+  else if(rate < 30) note.innerText = '마진율 30% 미만은 업계 평균보다 낮은 편이에요. 고정비 배분을 다시 확인해보세요.';
+  else if(rate < 50) note.innerText = '평균적인 마진율 구간입니다. 재료비 비중을 조금 더 낮출 여지가 있어요.';
+  else note.innerText = '평균보다 높은 마진율이에요. 이 메뉴를 주력으로 밀어볼 만합니다.';
+};
+
+window.proceedToSignupFromCalc = function() {
+  localPrefs.onboardingSeen = true; saveLocalPrefs();
+  document.getElementById('onboard-flow').classList.add('hidden-page');
+  document.getElementById('auth-screen').classList.remove('hidden-page');
+  switchAuthTab('create');
+};
+
+window.skipOnboarding = function() {
+  localPrefs.onboardingSeen = true; saveLocalPrefs();
+  document.getElementById('onboard-flow').classList.add('hidden-page');
+  document.getElementById('auth-screen').classList.remove('hidden-page');
+};
+
+function updateRoleBadge() {
+  const badge = document.getElementById('role-display-badge');
+  if(!badge || !myProfile) return;
+  if(myProfile.role === 'master') { badge.innerText = '👑 MASTER'; badge.className = 'role-badge badge-master'; }
+  else { badge.innerText = '👤 STAFF'; badge.className = 'role-badge badge-staff'; }
+}
+
+function renderInviteCode() {
+  const el = document.getElementById('invite-code-display');
+  if(el) el.innerText = storeInfo.currentInviteCode || '------';
+}
+
+window.copyInviteCode = function() {
+  const code = storeInfo.currentInviteCode;
+  if(!code) return;
+  navigator.clipboard.writeText(code).then(function() { toast('📋 초대코드가 복사되었습니다.', 'ok'); }).catch(function() { toast('복사 실패', 'err'); });
+};
+
+window.saveBizSettings = async function() {
+  if(!myProfile || myProfile.role !== 'master') return;
+  if(!requireOnline('사업 설정 저장')) return;
+  const vatEnabled = document.getElementById('in-vat-enabled').checked;
+  const vatRate = Number(document.getElementById('in-vat-rate').value) || 10;
+  const rent = Number(document.getElementById('in-fixed-rent').value) || 0;
+  const labor = Number(document.getElementById('in-fixed-labor').value) || 0;
+  const util = Number(document.getElementById('in-fixed-util').value) || 0;
+  const businessType = document.getElementById('in-biz-type').value;
+  const benchLowRaw = document.getElementById('in-benchmark-low').value;
+  const benchHighRaw = document.getElementById('in-benchmark-high').value;
+  const benchmarkLow = benchLowRaw !== '' ? Number(benchLowRaw) : null;
+  const benchmarkHigh = benchHighRaw !== '' ? Number(benchHighRaw) : null;
+  try {
+    await updateDoc(doc(dbFs, 'stores', myProfile.storeId), {
+      vatEnabled: vatEnabled, vatRate: vatRate,
+      fixedCosts: { rent: rent, labor: labor, util: util },
+      businessType: businessType, benchmarkLow: benchmarkLow, benchmarkHigh: benchmarkHigh
+    });
+    storeInfo.vatEnabled = vatEnabled;
+    storeInfo.vatRate = vatRate;
+    storeInfo.fixedCosts = { rent: rent, labor: labor, util: util };
+    storeInfo.businessType = businessType;
+    storeInfo.benchmarkLow = benchmarkLow;
+    storeInfo.benchmarkHigh = benchmarkHigh;
+    toast('사업 설정이 저장되었습니다.', 'ok');
+    if(currentPage === 'report') renderDashboard();
+  } catch(err) { toast('저장 실패: ' + err.message, 'err'); }
+};
+
+window.regenerateInviteCode = async function() {
+  if(!myProfile || myProfile.role !== 'master') return;
+  if(!requireOnline('초대코드 재발급')) return;
+  if(!confirm('기존 초대코드는 즉시 무효화됩니다. 계속하시겠습니까?')) return;
+  try {
+    const oldCode = storeInfo.currentInviteCode;
+    let newCode = generateInviteCode();
+    for(let i = 0; i < 5; i++) {
+      const exists = await getDoc(doc(dbFs, 'inviteCodes', newCode));
+      if(!exists.exists()) break;
+      newCode = generateInviteCode();
+    }
+    await setDoc(doc(dbFs, 'inviteCodes', newCode), { storeId: myProfile.storeId });
+    await updateDoc(doc(dbFs, 'stores', myProfile.storeId), { currentInviteCode: newCode });
+    if(oldCode) await deleteDoc(doc(dbFs, 'inviteCodes', oldCode)).catch(function() {});
+    storeInfo.currentInviteCode = newCode;
+    renderInviteCode();
+    toast('새 초대코드가 발급되었습니다.', 'ok');
+  } catch(err) { toast('실패: ' + err.message, 'err'); }
+};
+
+// ============================================================
+// 실시간 리스너 (매장 범위로 스코프됨)
+// ============================================================
+let activeUnsubscribers = []; // attachListeners가 등록한 onSnapshot 해제 함수들 (매장 전환 시 정리용)
+
+function attachListeners() {
+  if(listenersAttached) return;
+  listenersAttached = true;
+
+  activeUnsubscribers.push(onSnapshot(storeCol('raw'), function(snap) {
+    rawCache = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+    if(currentPage === 'raw') { renderRawOnboard(); renderRaw(); }
+    if(currentPage === 'pos') { renderLowStockBanner(); renderQuickSales(); }
+    if(currentPage === 'recipe') { updateSelects(); updateRecipeCalc(); }
+  }, function(err) { toast('재고 실시간 연결 오류: ' + err.message, 'err'); }));
+
+  activeUnsubscribers.push(onSnapshot(storeCol('menus'), function(snap) {
+    menuCache = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+    if(currentPage === 'pos') renderQuickSales();
+    if(currentPage === 'recipe') { renderRecipeOnboard(); renderSavedMenus(); }
+  }, function(err) { toast('메뉴 실시간 연결 오류: ' + err.message, 'err'); }));
+
+  const recentQ = query(storeCol('sales'), orderBy('date', 'desc'), limit(5));
+  activeUnsubscribers.push(onSnapshot(recentQ, function(snap) {
+    recentSalesCache = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+    if(currentPage === 'pos') renderRecentSales();
+  }, function(err) { toast('매출 실시간 연결 오류: ' + err.message, 'err'); }));
+}
+
+function detachListeners() {
+  activeUnsubscribers.forEach(function(unsub) { try { unsub(); } catch(e) {} });
+  activeUnsubscribers = [];
+  listenersAttached = false;
+}
+
+// ============================================================
+// 다중 매장 (마스터 전용) — 매장 전환 / 추가
+// ⚠️ firestore.rules에 users/{uid} 문서의 storeId 전환·storeIds 추가를 허용하는
+//    규칙이 배포되어 있어야 동작합니다(별도 초안 firestore.rules.draft 전달).
+//    규칙이 없으면 아래 updateDoc 호출은 permission-denied로 실패합니다.
+// ============================================================
+let storeNameCache = {}; // storeId -> name (같은 세션 내 반복 조회 방지용 캐시)
+
+window.switchActiveStore = async function(newStoreId) {
+  if(!myProfile || myProfile.role !== 'master') return toast('관리자만 매장을 전환할 수 있습니다.', 'err');
+  if(!newStoreId || newStoreId === myProfile.storeId) return;
+  if(!myProfile.storeIds || myProfile.storeIds.indexOf(newStoreId) === -1) return toast('소속되지 않은 매장입니다.', 'err');
+  if(!requireOnline('매장 전환')) return;
+  try {
+    await updateDoc(doc(dbFs, 'users', myProfile.uid), { storeId: newStoreId });
+    await reloadActiveStore(newStoreId);
+    toast('매장을 전환했습니다: ' + (storeInfo.name || newStoreId), 'ok');
+  } catch(err) { toast('매장 전환 실패: ' + err.message + ' (보안규칙 미배포일 수 있음)', 'err'); }
+};
+
+window.createAdditionalStore = async function() {
+  if(!myProfile || myProfile.role !== 'master') return toast('관리자만 매장을 추가할 수 있습니다.', 'err');
+  const nameInput = document.getElementById('in-new-store-name');
+  const storeName = nameInput ? nameInput.value.trim() : '';
+  if(!storeName) return toast('새 매장 이름을 입력하세요.', 'err');
+  if(!requireOnline('매장 추가')) return;
+  try {
+    const storeRef = doc(collection(dbFs, 'stores'));
+    const newStoreId = storeRef.id;
+    await setDoc(storeRef, { name: storeName, ownerUid: myProfile.uid, createdAt: serverTimestamp(), plan: 'trial', currentInviteCode: null });
+
+    let code = generateInviteCode();
+    for(let i = 0; i < 5; i++) {
+      const exists = await getDoc(doc(dbFs, 'inviteCodes', code));
+      if(!exists.exists()) break;
+      code = generateInviteCode();
+    }
+    await setDoc(doc(dbFs, 'inviteCodes', code), { storeId: newStoreId });
+    await updateDoc(storeRef, { currentInviteCode: code });
+
+    const newStoreIds = (myProfile.storeIds || [myProfile.storeId]).concat([newStoreId]);
+    await updateDoc(doc(dbFs, 'users', myProfile.uid), { storeId: newStoreId, storeIds: newStoreIds });
+
+    await reloadActiveStore(newStoreId, newStoreIds);
+    if(nameInput) nameInput.value = '';
+    justCreatedStore = true;
+    showPage('recipe');
+    openQuickStart();
+    toast('새 매장이 생성되었습니다: ' + storeName, 'ok');
+  } catch(err) { toast('매장 추가 실패: ' + err.message + ' (보안규칙 미배포일 수 있음)', 'err'); }
+};
+
+async function reloadActiveStore(newStoreId, newStoreIdsOverride) {
+  detachListeners();
+  myProfile.storeId = newStoreId;
+  if(newStoreIdsOverride) myProfile.storeIds = newStoreIdsOverride;
+  rawCache = []; menuCache = []; recentSalesCache = [];
+
+  const storeSnap = await getDoc(doc(dbFs, 'stores', newStoreId));
+  storeInfo = storeSnap.exists() ? storeSnap.data() : { name: '내 매장' };
+
+  document.getElementById('header-store-name').innerText = storeInfo.name || '내 매장';
+  document.getElementById('my-account-info').innerText = (myProfile.name || '') + ' (' + myProfile.email + ') · 권한: ' + (myProfile.role === 'master' ? '관리자' : '직원') + '\n소속 매장: ' + (storeInfo.name || '');
+  renderInviteCode();
+  await renderStoreSwitcher();
+
+  const bizCard = document.getElementById('biz-settings-card');
+  if(bizCard && myProfile.role === 'master') {
+    document.getElementById('in-vat-enabled').checked = !!storeInfo.vatEnabled;
+    document.getElementById('in-vat-rate').value = (storeInfo.vatRate != null) ? storeInfo.vatRate : 10;
+    const fc = storeInfo.fixedCosts || {};
+    document.getElementById('in-fixed-rent').value = fc.rent || '';
+    document.getElementById('in-fixed-labor').value = fc.labor || '';
+    document.getElementById('in-fixed-util').value = fc.util || '';
+    document.getElementById('in-biz-type').value = storeInfo.businessType || 'etc';
+    document.getElementById('in-benchmark-low').value = (storeInfo.benchmarkLow != null) ? storeInfo.benchmarkLow : '';
+    document.getElementById('in-benchmark-high').value = (storeInfo.benchmarkHigh != null) ? storeInfo.benchmarkHigh : '';
+  }
+
+  attachListeners();
+  showPage(currentPage);
+}
+
+window.renderStoreSwitcher = async function() {
+  const slot = document.getElementById('store-switcher-slot');
+  if(!slot) return;
+  if(!myProfile || myProfile.role !== 'master' || !myProfile.storeIds || myProfile.storeIds.length <= 1) {
+    slot.innerHTML = '<p style="font-size:0.6rem; color:var(--muted);">소속된 매장이 1개뿐입니다. 아래에서 매장을 추가하면 전환 메뉴가 나타납니다.</p>';
+    return;
+  }
+  const ids = myProfile.storeIds;
+  for(let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    if(storeNameCache[id]) continue;
+    if(id === myProfile.storeId) { storeNameCache[id] = storeInfo.name || id; continue; }
+    try {
+      const snap = await getDoc(doc(dbFs, 'stores', id));
+      storeNameCache[id] = snap.exists() ? (snap.data().name || id) : id;
+    } catch(e) { storeNameCache[id] = id; }
+  }
+  const opts = ids.map(function(id) {
+    return '<option value="' + id + '"' + (id === myProfile.storeId ? ' selected' : '') + '>' + esc(storeNameCache[id] || id) + '</option>';
+  }).join('');
+  slot.innerHTML = '<select onchange="switchActiveStore(this.value)" style="margin:0;">' + opts + '</select>';
+};
+
+// ============================================================
+// 네비게이션
+// ============================================================
+window.showPage = function(id) {
+  const restrictedPages = ['report', 'setting'];
+  if(restrictedPages.indexOf(id) !== -1 && (!myProfile || myProfile.role !== 'master')) {
+    toast('관리자 권한이 필요합니다.', 'err');
+    return;
+  }
+  currentPage = id;
+  document.querySelectorAll('.page-content').forEach(function(p) { p.classList.add('hidden-page'); });
+  const target = document.getElementById('page-' + id);
+  if(target) target.classList.remove('hidden-page');
+  document.querySelectorAll('.nav-item, .nav-pos-fab').forEach(function(n) { n.classList.remove('nav-active'); });
+  const targetNav = document.getElementById('nav-' + id);
+  if(targetNav) targetNav.classList.add('nav-active');
+
+  if(id === 'pos') { renderLowStockBanner(); renderQuickSales(); renderCart(); renderRecentSales(); }
+  if(id === 'report') renderDashboard();
+  if(id === 'raw') { renderRawOnboard(); renderRaw(); }
+  if(id === 'recipe') { renderRecipeOnboard(); updateSelects(); renderSavedMenus(); updateRecipeCalc(); }
+  if(id === 'setting') { updateSyncInfo(); if(myProfile.role === 'master') renderInviteCode(); }
+};
+
+window.toggleDark = function() {
+  localPrefs.darkMode = !localPrefs.darkMode;
+  document.body.classList.toggle('dark', localPrefs.darkMode);
+  saveLocalPrefs();
+  if(currentPage === 'report') renderDashboard();
+};
+
+window.closeReceiptModal = function() { document.getElementById('receipt-modal').classList.add('hidden-page'); };
+
+// ============================================================
+// POS / 결제 (트랜잭션으로 재고 동시성 보호)
+// ============================================================
+function shortage(m) {
+  if(!m.recipe || m.recipe.length === 0) return false;
+  for(let i = 0; i < m.recipe.length; i++) {
+    const rec = m.recipe[i];
+    const raw = rawCache.find(function(x) { return x.id === rec.rawId; });
+    if(raw && raw.qty < rec.qty) return true;
+  }
+  return false;
+}
+
+function menuCost(m) {
+  if(!m.recipe) return 0;
+  let cost = 0;
+  m.recipe.forEach(function(rec) {
+    const raw = rawCache.find(function(x) { return x.id === rec.rawId; });
+    if(raw) cost += (raw.unitPrice || 0) * rec.qty;
+  });
+  return cost;
+}
+
+// 기본 목표마진(%). "목표 마진(%)" 입력칸의 원래 기본값(65)과 동일하게 맞춤 —
+// 메뉴별로 저장된 targetMargin이 없는 경우(기존 메뉴, 마이그레이션 전) 이 값을 기준으로 판단한다.
+const DEFAULT_TARGET_MARGIN = 65;
+
+function menuTargetMargin(m) { return (m.targetMargin != null) ? m.targetMargin : DEFAULT_TARGET_MARGIN; }
+
+// ============================================================
+// 업종별 마진율 벤치마크 (기능 #5)
+// 아래 수치는 정부 공식 통계(국세청 단순경비율 등은 세금 계산용 "필요경비율"이라
+// 원가율과 성격이 달라 그대로 쓰지 않았음)가 아니라, 외식업 창업/운영 자문 콘텐츠에서
+// 공통적으로 언급되는 "적정 원가율 30~35%(=매출총이익률 65~70%)"라는 일반 기준선을 뼈대로,
+// 같은 자료가 제시한 업종별 원가 상대적 높낮이(분식/카페 낮음~중간, 한식 중간,
+// 치킨/고기·배달전문 중간~높음, 횟집 높음)를 반영해 만든 "참고용 추천값"이다.
+// 정밀한 업종별 공식 통계가 아니므로 UI에 그 점을 명시하고, 사장님이 직접 숫자를
+// 조정할 수 있게 했다 (in-benchmark-low / in-benchmark-high).
+const BENCHMARK_SUGGEST_BY_TYPE = {
+  cafe:     { low: 68, high: 75, label: '카페 · 디저트' },
+  snack:    { low: 65, high: 73, label: '분식 · 간식' },
+  bakery:   { low: 65, high: 72, label: '베이커리' },
+  korean:   { low: 62, high: 70, label: '한식 · 국밥/탕류' },
+  pub:      { low: 60, high: 68, label: '술집 · 호프' },
+  bbq:      { low: 55, high: 65, label: '치킨 · 고기/구이' },
+  delivery: { low: 55, high: 64, label: '배달 전문' },
+  seafood:  { low: 52, high: 60, label: '횟집 · 해산물' },
+  etc:      { low: 62, high: 70, label: '기타' }
+};
+
+window.applyBenchmarkSuggestion = function() {
+  const type = document.getElementById('in-biz-type').value;
+  const s = BENCHMARK_SUGGEST_BY_TYPE[type];
+  if(!s) return;
+  document.getElementById('in-benchmark-low').value = s.low;
+  document.getElementById('in-benchmark-high').value = s.high;
+};
+
+function loadBenchmarkPercent(m) {
+  // 매출총이익률(%) 계산: (매출 - 매출원가) / 매출 * 100. 매출 0이면 계산 불가.
+  if(!m || m.totalRev <= 0) return null;
+  return ((m.totalRev - m.totalCogs) / m.totalRev) * 100;
+}
+
+window.renderMarginBenchmark = function(totalRev, totalCogs) {
+  const el = document.getElementById('benchmark-body');
+  if(!el) return;
+  const low = storeInfo.benchmarkLow, high = storeInfo.benchmarkHigh;
+  if(low == null || high == null) {
+    el.innerHTML = '<p style="font-size:0.65rem; color:var(--muted);">[설정] → 사업 설정에서 업종을 선택하면 마진율 벤치마크가 표시됩니다.</p>';
+    return;
+  }
+  const myMargin = loadBenchmarkPercent({ totalRev: totalRev, totalCogs: totalCogs });
+  if(myMargin == null) {
+    el.innerHTML = '<p style="font-size:0.65rem; color:var(--muted);">이 기간 매출 데이터가 없어 비교할 수 없습니다.</p>';
+    return;
+  }
+  const typeLabel = (BENCHMARK_SUGGEST_BY_TYPE[storeInfo.businessType] || {}).label || '내 업종';
+  let statusText, statusColor;
+  if(myMargin < low) { statusText = '⚠️ 벤치마크보다 낮음 — 원가/판매가 점검 필요'; statusColor = '#f59e0b'; }
+  else if(myMargin > high) { statusText = '✅ 벤치마크보다 높음 (양호)'; statusColor = '#10b981'; }
+  else { statusText = '✅ 벤치마크 범위 안'; statusColor = 'var(--primary)'; }
+
+  // 간단한 가로 게이지: 0~100% 스케일에, 벤치마크 범위를 음영으로, 내 마진율을 마커로 표시.
+  const clamp = function(v) { return Math.max(0, Math.min(100, v)); };
+  const rangeLeft = clamp(low), rangeWidth = clamp(high) - clamp(low);
+  const markerPos = clamp(myMargin);
+  el.innerHTML =
+    '<p style="font-size:0.68rem; color:var(--muted); margin-bottom:0.3rem;">' + esc(typeLabel) + ' 참고 범위 ' + low + '~' + high + '% · 이 기간 내 마진율 <b style="color:' + statusColor + ';">' + myMargin.toFixed(1) + '%</b></p>' +
+    '<div style="position:relative; height:14px; background:var(--input-bg); border-radius:7px; overflow:hidden; margin-bottom:0.3rem;">' +
+      '<div style="position:absolute; left:' + rangeLeft + '%; width:' + rangeWidth + '%; height:100%; background:var(--primary-bg); border-left:1px dashed var(--primary); border-right:1px dashed var(--primary);"></div>' +
+      '<div style="position:absolute; left:' + markerPos + '%; top:-2px; width:2px; height:18px; background:' + statusColor + ';"></div>' +
+    '</div>' +
+    '<p style="font-size:0.66rem; font-weight:700; color:' + statusColor + ';">' + statusText + '</p>' +
+    '<p style="font-size:0.56rem; color:var(--muted); margin-top:0.3rem;">※ 정부 공식 통계가 아닌 외식업 통상 참고치입니다. [설정]에서 범위를 직접 조정할 수 있습니다.</p>';
+};
+
+// rawId 하나의 단가만 overridePrice로 바꿔서 원가를 계산 (다른 재료는 현재 rawCache 단가 사용).
+// 특정 원재료 가격 변동 하나가 메뉴 원가에 미치는 영향만 분리해서 보기 위함.
+function menuCostWithOverride(m, overrideRawId, overridePrice) {
+  if(!m.recipe) return 0;
+  let cost = 0;
+  m.recipe.forEach(function(rec) {
+    if(rec.rawId === overrideRawId) { cost += overridePrice * rec.qty; return; }
+    const raw = rawCache.find(function(x) { return x.id === rec.rawId; });
+    if(raw) cost += (raw.unitPrice || 0) * rec.qty;
+  });
+  return cost;
+}
+
+// ============================================================
+// 원자재 가격 변동 알림
+// 재료 재입고로 평균단가가 오른 경우, 그 재료를 쓰는 메뉴 중
+// "목표마진 이상 -> 목표마진 미달"로 넘어간 메뉴만 콕 집어 토스트로 알린다.
+// (원래부터 목표마진 미달이던 메뉴까지 매번 다시 알리면 알림 피로만 커짐)
+// ============================================================
+function checkMarginAlertsForRawPriceChange(rawId, oldPrice, newPrice) {
+  if(!(newPrice > oldPrice)) return; // 가격이 그대로거나 내렸으면 알림 대상 아님
+  const affected = [];
+  menuCache.forEach(function(m) {
+    if(!m.recipe || !m.recipe.some(function(r) { return r.rawId === rawId; })) return;
+    if(!(m.price > 0)) return;
+    const target = menuTargetMargin(m);
+    const oldMargin = ((m.price - menuCostWithOverride(m, rawId, oldPrice)) / m.price) * 100;
+    const newMargin = ((m.price - menuCostWithOverride(m, rawId, newPrice)) / m.price) * 100;
+    if(oldMargin >= target && newMargin < target) {
+      affected.push(m.name + '(' + newMargin.toFixed(1) + '%)');
+    }
+  });
+  if(affected.length > 0) {
+    toast('⚠️ 원재료 단가 인상으로 목표마진 미달: ' + affected.join(', '), 'err');
+  }
+}
+
+function renderLowStockBanner() {
+  const slot = document.getElementById('low-stock-banner-slot');
+  if(!slot) return;
+  const lows = rawCache.filter(function(r) { const min = (r.minQty != null) ? r.minQty : 5; return r.qty <= min; });
+  if(lows.length === 0) { slot.innerHTML = ''; return; }
+  const names = lows.slice(0, 3).map(function(r) { return esc(r.name); }).join(', ');
+  slot.innerHTML = '<div class="low-stock-banner" onclick="showPage(\'raw\')">⚠️ 재고 부족: ' + names + (lows.length > 3 ? ' 외 ' + (lows.length - 3) + '건' : '') + ' — 눌러서 확인</div>';
+}
+
+function renderRawOnboard() {
+  const slot = document.getElementById('raw-onboard-slot');
+  if(!slot) return;
+  if(rawCache.length > 0) { slot.innerHTML = ''; return; }
+  slot.innerHTML = '<div class="onboard-card"><b style="font-size:0.8rem;">👋 첫 재료를 등록해보세요</b>' +
+    '<div class="onboard-step"><span class="num">1</span>아래 폼에 원두, 컵, 시럽 같은 원재료를 입력하세요</div>' +
+    '<div class="onboard-step"><span class="num">2</span>등록 후 [메뉴] 탭에서 이 재료로 메뉴 레시피를 만드세요</div>' +
+    '<div class="onboard-step"><span class="num">3</span>[POS] 탭에서 바로 판매를 시작할 수 있습니다</div></div>';
+}
+
+function renderRecipeOnboard() {
+  const slot = document.getElementById('recipe-onboard-slot');
+  if(!slot) return;
+  if(menuCache.length > 0 || rawCache.length === 0) { slot.innerHTML = ''; return; }
+  slot.innerHTML = '<div class="onboard-card"><b style="font-size:0.8rem;">📝 이제 메뉴를 만들어보세요</b>' +
+    '<div class="onboard-step"><span class="num">1</span>메뉴명 입력 → 아래에서 재료와 용량을 추가하세요</div>' +
+    '<div class="onboard-step"><span class="num">2</span>목표 마진(%)을 정하면 추천 판매가가 자동 계산됩니다</div></div>';
+}
+
+function renderPosOnboard() {
+  const slot = document.getElementById('pos-onboard-slot');
+  if(!slot) return;
+  if(menuCache.length > 0) { slot.innerHTML = ''; return; }
+  slot.innerHTML = '<div class="onboard-card"><b style="font-size:0.8rem;">🍽️ 아직 등록된 메뉴가 없습니다</b>' +
+    '<div class="onboard-step" style="justify-content:center;">[메뉴] 탭에서 첫 메뉴를 등록하면 여기 표시됩니다</div></div>';
+}
+
+function renderCategoryTabs() {
+  const slot = document.getElementById('cat-tabs-slot');
+  if(!slot) return;
+  if(menuCache.length === 0) { slot.innerHTML = ''; return; }
+  const cats = ['전체'];
+  menuCache.forEach(function(m) { const c = m.category || '기타'; if(cats.indexOf(c) === -1) cats.push(c); });
+  let html = '<div class="cat-tab-row">';
+  cats.forEach(function(c) {
+    html += '<button type="button" class="cat-tab' + (c === currentCategoryFilter ? ' active' : '') + '" onclick="setCategoryFilter(\'' + esc(c) + '\')">' + esc(c) + '</button>';
+  });
+  html += '</div>';
+  slot.innerHTML = html;
+}
+
+window.setCategoryFilter = function(c) { currentCategoryFilter = c; renderQuickSales(); };
+
+window.renderQuickSales = function() {
+  renderPosOnboard();
+  renderCategoryTabs();
+  const searchIn = document.getElementById('pos-search-input');
+  const keyword = searchIn ? searchIn.value.toLowerCase().trim() : '';
+  let filtered = menuCache.filter(function(m) { return m.name.toLowerCase().indexOf(keyword) !== -1; });
+  if(currentCategoryFilter !== '전체') filtered = filtered.filter(function(m) { return (m.category || '기타') === currentCategoryFilter; });
+  let html = '';
+  if(filtered.length > 0) {
+    filtered.forEach(function(m) {
+      const short = shortage(m);
+      html += '<button onclick="addToCartDirect(\'' + m.id + '\')" class="glass-card' + (short ? ' low-stock' : '') + '" style="text-align:left; margin:0;">' +
+        (m.imageUrl ? '<img class="menu-thumb" src="' + esc(m.imageUrl) + '" onerror="this.style.display=\'none\'">' : '') +
+        '<div style="font-size:0.75rem; font-weight:800;">' + esc(m.name) + (short ? ' <span class="stock-badge" style="background:var(--accent-rose); color:#fff;">재고부족</span>' : '') + '</div>' +
+        '<div style="font-size:0.7rem; font-weight:900; color:var(--primary); text-align:right;">' + m.price.toLocaleString() + '원</div></button>';
+    });
+  } else { html = '<p style="grid-column:span 2; text-align:center; font-size:0.7rem; color:var(--muted);">' + (menuCache.length === 0 ? '' : '해당하는 메뉴가 없습니다.') + '</p>'; }
+  document.getElementById('quick-sale-btns').innerHTML = html;
+};
+
+window.selectPayMethod = function(method) {
+  currentPayMethod = method;
+  ['현금','카드','간편결제'].forEach(function(m) {
+    const id = m === '현금' ? 'pay-cash' : (m === '카드' ? 'pay-card' : 'pay-mobile');
+    document.getElementById(id).classList.toggle('active', m === method);
+  });
+};
+
+window.addToCartDirect = function(id) {
+  const m = menuCache.find(function(x) { return x.id === id; });
+  if(!m) return;
+  const exist = cart.find(function(c) { return c.id === id; });
+  if(exist) exist.qty++; else cart.push({ id: m.id, name: m.name, price: m.price, qty: 1 });
+  renderCart();
+};
+
+window.cartQty = function(idx, delta) {
+  if(cart[idx]) { cart[idx].qty += delta; if(cart[idx].qty <= 0) cart.splice(idx, 1); renderCart(); }
+};
+
+window.clearCart = function() {
+  if(cart.length > 0 && confirm('장바구니를 완전히 비우시겠습니까?')) { cart = []; renderCart(); }
+};
+
+window.renderCart = function() {
+  let total = 0, html = '';
+  if(cart.length > 0) {
+    cart.forEach(function(c, i) {
+      total += c.price * c.qty;
+      html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span>' + esc(c.name) + ' (' + c.price.toLocaleString() + '원)</span>' +
+        '<div><button onclick="cartQty(' + i + ', -1)" class="btn-sm">-</button> <b>' + c.qty + '</b> <button onclick="cartQty(' + i + ', 1)" class="btn-sm">+</button></div></div>';
+    });
+  } else { html = '<p style="text-align:center; color:var(--muted); font-size:0.65rem;">장바구니가 비어 있습니다.</p>'; }
+  document.getElementById('cart-items-list').innerHTML = html;
+  document.getElementById('cart-total-price').innerText = total.toLocaleString() + '원';
+};
+
+window.checkoutCart = async function() {
+  if(cart.length === 0) return toast('장바구니가 비어 있습니다.', 'err');
+  const note = document.getElementById('cart-order-note').value.trim();
+  // 재방문/단골 관리(기능 #8)용 선택 입력. 뒷 4자리만 받아서 전체 전화번호보다 노출 위험을 줄였다 —
+  // 완전한 개인식별정보는 아니지만 같은 매장 손님 규모에서는 재방문 식별용으로 충분하다고 보고,
+  // 입력을 강제하지 않아 계산 흐름을 늦추지 않게 했다. 입력했다면 숫자 4자리 형식만 검증.
+  const customerPhoneRaw = document.getElementById('cart-customer-phone').value.trim();
+  if(customerPhoneRaw && !/^\d{4}$/.test(customerPhoneRaw)) {
+    return toast('전화번호 뒷자리는 숫자 4자리로 입력하거나 비워두세요.', 'err');
+  }
+  const customerPhone = customerPhoneRaw || null;
+  const btn = document.getElementById('checkout-btn');
+  btn.disabled = true;
+  const cartSnapshot = cart.slice();
+
+  try {
+    if(isOnline) {
+      await checkoutOnline(cartSnapshot, note, customerPhone);
+    } else {
+      await checkoutOffline(cartSnapshot, note, customerPhone);
+    }
+    finishCheckout(cartSnapshot, note, isOnline);
+  } catch(err) {
+    toast('❌ 결제 실패: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+// 온라인: Firestore 트랜잭션으로 재고 동시성까지 안전하게 보장
+async function checkoutOnline(cartSnapshot, note, customerPhone) {
+  await runTransaction(dbFs, async function(tx) {
+    const neededMap = {};
+    const menuDetails = [];
+
+    cartSnapshot.forEach(function(c) {
+      const menu = menuCache.find(function(m) { return m.id === c.id; });
+      if(!menu) throw new Error('메뉴 정보를 찾을 수 없습니다: ' + c.name);
+      menuDetails.push({ cartItem: c, menu: menu, cost: menuCost(menu) });
+      (menu.recipe || []).forEach(function(rec) {
+        neededMap[rec.rawId] = (neededMap[rec.rawId] || 0) + rec.qty * c.qty;
+      });
+    });
+
+    const rawSnaps = {};
+    const rawIds = Object.keys(neededMap);
+    for(let i = 0; i < rawIds.length; i++) {
+      const rawId = rawIds[i];
+      const rRef = storeDocRef('raw', rawId);
+      const rSnap = await tx.get(rRef);
+      if(!rSnap.exists()) throw new Error('재료 정보가 존재하지 않습니다.');
+      const cur = rSnap.data();
+      if(cur.qty < neededMap[rawId]) throw new Error((cur.name || '재료') + ' 재고가 부족합니다. (다른 기기에서 방금 판매되었을 수 있습니다)');
+      rawSnaps[rawId] = { ref: rRef, data: cur };
+    }
+
+    rawIds.forEach(function(rawId) {
+      const s = rawSnaps[rawId];
+      tx.update(s.ref, { qty: s.data.qty - neededMap[rawId] });
+    });
+
+    menuDetails.forEach(function(md) {
+      for(let k = 0; k < md.cartItem.qty; k++) {
+        const saleRef = doc(storeCol('sales'));
+        tx.set(saleRef, {
+          menuId: md.menu.id, menuName: md.menu.name, price: md.menu.price, cost: md.cost,
+          staffName: myProfile.name || myProfile.email, staffUid: myProfile.uid,
+          note: note || '', paymentMethod: currentPayMethod, date: serverTimestamp(),
+          customerPhone: customerPhone || null
+        });
+      }
+    });
+  });
+}
+
+// 오프라인: 트랜잭션은 서버 연결이 필요해 쓸 수 없으므로, 로컬에 캐시된 재고 수치를 기준으로
+// 최선을 다해 처리하고 Firestore SDK가 자동으로 큐에 쌓아뒀다가 재연결 시 동기화합니다.
+// (아주 드물게 여러 기기가 동시에 오프라인으로 같은 재료를 팔면 재고가 살짝 어긋날 수 있음 — 재연결 후 재고 탭에서 확인 권장)
+async function checkoutOffline(cartSnapshot, note, customerPhone) {
+  const neededMap = {};
+  const menuDetails = [];
+
+  cartSnapshot.forEach(function(c) {
+    const menu = menuCache.find(function(m) { return m.id === c.id; });
+    if(!menu) throw new Error('메뉴 정보를 찾을 수 없습니다: ' + c.name);
+    menuDetails.push({ cartItem: c, menu: menu, cost: menuCost(menu) });
+    (menu.recipe || []).forEach(function(rec) {
+      neededMap[rec.rawId] = (neededMap[rec.rawId] || 0) + rec.qty * c.qty;
+    });
+  });
+
+  const rawIds = Object.keys(neededMap);
+  for(let i = 0; i < rawIds.length; i++) {
+    const rawId = rawIds[i];
+    const cached = rawCache.find(function(r) { return r.id === rawId; });
+    if(cached && cached.qty < neededMap[rawId]) {
+      throw new Error((cached.name || '재료') + ' 재고가 부족합니다 (마지막 동기화 기준).');
+    }
+  }
+
+  rawIds.forEach(function(rawId) {
+    const cached = rawCache.find(function(r) { return r.id === rawId; });
+    if(cached) {
+      const newQty = cached.qty - neededMap[rawId];
+      updateDoc(storeDocRef('raw', rawId), { qty: newQty }).catch(function() {});
+      cached.qty = newQty; // 로컬 캐시도 즉시 반영해 연속 판매 시 이중 차감 방지
+    }
+  });
+
+  menuDetails.forEach(function(md) {
+    for(let k = 0; k < md.cartItem.qty; k++) {
+      addDoc(storeCol('sales'), {
+        menuId: md.menu.id, menuName: md.menu.name, price: md.menu.price, cost: md.cost,
+        staffName: myProfile.name || myProfile.email, staffUid: myProfile.uid,
+        note: note || '', paymentMethod: currentPayMethod, date: serverTimestamp(),
+        customerPhone: customerPhone || null
+      }).catch(function() {});
+    }
+  });
+}
+
+function finishCheckout(cartSnapshot, note, wasOnline) {
+  let totalAmt = 0;
+  let receiptStr = '=== ' + (storeInfo.name || '매장') + ' RECEIPT ===\n일시: ' + new Date().toLocaleString() + '\n담당: ' + (myProfile.name || myProfile.email) + '\n결제수단: ' + currentPayMethod + (wasOnline ? '' : ' (오프라인)') + '\n';
+  if(note) receiptStr += '메모: ' + note + '\n';
+  receiptStr += '------------------------\n';
+  cartSnapshot.forEach(function(c) {
+    const lineTotal = c.price * c.qty;
+    totalAmt += lineTotal;
+    receiptStr += c.name + ' x' + c.qty + ' : ' + lineTotal.toLocaleString() + '원\n';
+  });
+  receiptStr += '------------------------\n총액: ' + totalAmt.toLocaleString() + '원\n========================';
+  document.getElementById('receipt-content-box').innerText = receiptStr;
+  document.getElementById('receipt-modal').classList.remove('hidden-page');
+
+  cart = [];
+  document.getElementById('cart-order-note').value = '';
+  document.getElementById('cart-customer-phone').value = '';
+  selectPayMethod('현금');
+  renderCart();
+  toast(wasOnline ? '✅ 결제 완료' : '📴 오프라인 결제 완료 — 연결되면 자동 동기화됩니다', 'ok');
+}
+
+window.copyReceiptText = function() {
+  const txt = document.getElementById('receipt-content-box').innerText;
+  if(!txt) return;
+  if(navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(function() { toast('📋 클립보드에 복사되었습니다!', 'ok'); }).catch(function() { toast('복사 실패', 'err'); });
+  } else { toast('클립보드 복사를 지원하지 않는 브라우저입니다.', 'err'); }
+};
+
+window.renderRecentSales = function() {
+  let html = '';
+  if(recentSalesCache.length > 0) {
+    recentSalesCache.forEach(function(s) {
+      const canRefund = myProfile && myProfile.role === 'master';
+      html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0; border-bottom:1px solid var(--card-border); font-size:0.7rem;">' +
+        '<span>' + esc(s.menuName) + ' (' + s.price.toLocaleString() + '원) · ' + esc(s.staffName || '') + '</span>' +
+        (canRefund ? '<button onclick="cancelSale(\'' + s.id + '\')" class="btn-sm" style="background:#e11d48; color:#fff;">환불</button>' : '') +
+        '</div>';
+    });
+  } else { html = '<p style="text-align:center; color:var(--muted); font-size:0.65rem;">결제 내역이 없습니다.</p>'; }
+  document.getElementById('recent-sales-list').innerHTML = html;
+};
+
+window.cancelSale = async function(saleId) {
+  if(!requireOnline('환불')) return;
+  if(!confirm('결제를 취소하고 환불 처리하시겠습니까?\n차감되었던 원재료 재고가 자동으로 복구됩니다.')) return;
+  try {
+    await runTransaction(dbFs, async function(tx) {
+      const saleRef = storeDocRef('sales', saleId);
+      const saleSnap = await tx.get(saleRef);
+      if(!saleSnap.exists()) throw new Error('이미 삭제되었거나 존재하지 않는 판매입니다.');
+      const sale = saleSnap.data();
+      const menuRef = storeDocRef('menus', sale.menuId);
+      const menuSnap = await tx.get(menuRef);
+      const recipe = menuSnap.exists() ? (menuSnap.data().recipe || []) : [];
+
+      const rawUpdates = [];
+      for(let i = 0; i < recipe.length; i++) {
+        const rec = recipe[i];
+        const rRef = storeDocRef('raw', rec.rawId);
+        const rSnap = await tx.get(rRef);
+        if(rSnap.exists()) rawUpdates.push({ ref: rRef, newQty: rSnap.data().qty + rec.qty });
+      }
+      rawUpdates.forEach(function(u) { tx.update(u.ref, { qty: u.newQty }); });
+      tx.delete(saleRef);
+    });
+    toast('환불 및 재고 복구가 완료되었습니다.', 'ok');
+  } catch(err) {
+    toast('환불 실패: ' + err.message, 'err');
+  }
+};
+
+// ============================================================
+// AI 분석관
+// ============================================================
+window.saveAiKeyLocal = function() { localPrefs.aiKey = document.getElementById('ai-api-key').value.trim(); saveLocalPrefs(); };
+
+// ============================================================
+// 관리형 AI 분석관 (무료 체험, 베타)
+// ⚠️ 서버(Cloud Functions)의 managedAiAnalyze가 배포되어 있어야 동작합니다
+//    (functions/index.js 초안 별도 전달 — 실제 Gemini 키는 서버에만 보관되고
+//    클라이언트로는 절대 내려오지 않습니다). 미배포 상태에서는 호출이 실패하고,
+//    "내 API 키 사용" 모드로 전환하면 기존과 동일하게 계속 쓸 수 있습니다.
+// ============================================================
+let aiMode = 'managed'; // 'managed' | 'own'
+
+window.switchAiMode = function(mode) {
+  aiMode = mode;
+  document.getElementById('ai-tab-managed').classList.toggle('active', mode === 'managed');
+  document.getElementById('ai-tab-own').classList.toggle('active', mode === 'own');
+  document.getElementById('ai-managed-info').classList.toggle('hidden-page', mode !== 'managed');
+  document.getElementById('ai-api-key').classList.toggle('hidden-page', mode !== 'own');
+};
+
+window.askAI = function() {
+  const msgIn = document.getElementById('ai-user-msg');
+  const prompt = msgIn ? msgIn.value.trim() : '';
+  if(!prompt) return;
+  runAiQuery(prompt);
+};
+window.askAIQuick = function(msg) { runAiQuery(msg); };
+
+async function runAiQuery(prompt) {
+  const box = document.getElementById('ai-chat-box');
+  box.innerHTML += '<p style="color:var(--text-color); font-weight:700;"><b>👤 나:</b> ' + esc(prompt) + '</p>';
+  const msgIn = document.getElementById('ai-user-msg');
+  if(msgIn) msgIn.value = '';
+  box.scrollTop = box.scrollHeight;
+
+  const loadId = 'ai-load-' + Date.now();
+  box.innerHTML += '<p id="' + loadId + '" style="color:#a855f7; font-style:italic;">분석 중...</p>';
+
+  let recentSalesForAI = [];
+  try {
+    const q = query(storeCol('sales'), orderBy('date', 'desc'), limit(100));
+    const snap = await getDocs(q);
+    recentSalesForAI = snap.docs.map(function(d) { return d.data(); });
+  } catch(e) {}
+  const context = { store: storeInfo.name, stock: rawCache, menus: menuCache, recentSales: recentSalesForAI };
+
+  function finish(text, isError) {
+    const loader = document.getElementById(loadId);
+    if(loader) loader.remove();
+    box.innerHTML += isError
+      ? ('<p style="color:#e11d48; font-weight:800;">⚠️ ' + esc(text) + '</p>')
+      : ('<p style="color:#a855f7; font-weight:700;"><b>🔮 AI 분석관:</b> ' + esc(text) + '</p>');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  if(aiMode === 'own') {
+    const key = document.getElementById('ai-api-key').value.trim();
+    if(!key) return finish('Gemini API Key를 입력해주세요.', true);
+    try {
+      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + encodeURIComponent(key), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: '매장 데이터:\n' + JSON.stringify(context) + '\n\n질문:' + prompt }] }] })
+      });
+      const data = await res.json();
+      const aiText = (data.candidates && data.candidates[0] && data.candidates[0].content) ? data.candidates[0].content.parts[0].text : ('오류: ' + (data.error ? data.error.message : '응답 없음'));
+      finish(aiText, false);
+    } catch(e) { finish('통신 중 오류가 발생했습니다.', true); }
+    return;
+  }
+
+  // aiMode === 'managed' : Cloud Functions 콜러블 호출 (서버가 키/쿼터 관리)
+  try {
+    const callManagedAi = httpsCallable(functionsFs, 'managedAiAnalyze');
+    const result = await callManagedAi({ prompt: prompt, context: context });
+    finish(result.data.text, false);
+  } catch(e) {
+    const code = e && e.code ? e.code : '';
+    if(code === 'functions/resource-exhausted') {
+      finish(e.message + ' 상단 탭에서 "내 API 키 사용"으로 전환해주세요.', true);
+    } else {
+      finish('무료 체험 서버 호출 실패: ' + (e && e.message ? e.message : '알 수 없는 오류') + ' (아직 배포 전이거나 일시적 오류일 수 있습니다. "내 API 키 사용" 탭으로 전환해보세요.)', true);
+    }
+  }
+}
+
+// ============================================================
+// 재고
+// ============================================================
+window.addRawWithAverage = async function() {
+  if(!requireOnline('재고 입고')) return;
+  const name = document.getElementById('in-raw-name').value.trim();
+  const unit = document.getElementById('in-raw-unit').value;
+  const qty = Number(document.getElementById('in-raw-qty').value) || 0;
+  const price = Number(document.getElementById('in-raw-price').value) || 0;
+  const minInput = document.getElementById('in-raw-min').value;
+  const minQty = minInput !== '' ? Number(minInput) : null;
+  if(!name || qty <= 0) return toast('원재료 정보 입력 확인', 'err');
+
+  const existing = rawCache.find(function(x) { return x.name === name; });
+  let priceChangeBefore = null, priceChangeAfter = null; // 목표마진 알림용 (트랜잭션 밖에서 사용)
+  try {
+    if(existing) {
+      await runTransaction(dbFs, async function(tx) {
+        const ref = storeDocRef('raw', existing.id);
+        const snap = await tx.get(ref);
+        if(!snap.exists()) throw new Error('재료가 이미 삭제되었습니다.');
+        const cur = snap.data();
+        const newUnitPrice = qty > 0 ? price / qty : 0;
+        const totalQty = cur.qty + qty;
+        const avgPrice = totalQty > 0 ? ((cur.qty * (cur.unitPrice || 0)) + (qty * newUnitPrice)) / totalQty : newUnitPrice;
+        const update = { qty: totalQty, unitPrice: avgPrice };
+        if(minQty !== null) update.minQty = minQty;
+        tx.update(ref, update);
+        priceChangeBefore = cur.unitPrice || 0;
+        priceChangeAfter = avgPrice;
+      });
+      if(priceChangeBefore != null) checkMarginAlertsForRawPriceChange(existing.id, priceChangeBefore, priceChangeAfter);
+    } else {
+      await addDoc(storeCol('raw'), { name: name, unit: unit, qty: qty, unitPrice: qty > 0 ? price / qty : 0, minQty: minQty !== null ? minQty : 5 });
+    }
+    document.getElementById('in-raw-name').value = '';
+    document.getElementById('in-raw-qty').value = '';
+    document.getElementById('in-raw-price').value = '';
+    document.getElementById('in-raw-min').value = '';
+    toast('원재료 등록 완료', 'ok');
+  } catch(err) { toast('등록 실패: ' + err.message, 'err'); }
+};
+
+// ============================================================
+// 명세서/영수증 OCR 자동 입력 (베타)
+// 클라이언트에서 Tesseract.js로 텍스트를 인식한 뒤, 간단한 규칙 기반으로
+// 재료명 / 수량+단위 / 매입총액을 추정해 입고 폼에 채워 넣는다.
+// 인식 결과는 100% 정확하지 않을 수 있으므로 자동 등록하지 않고, 사용자가
+// 값을 확인한 뒤 직접 "입고 등록"을 누르도록 한다.
+// ============================================================
+window.handleRawOcrFile = async function(e) {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('ocr-status');
+  const label = document.getElementById('ocr-upload-label');
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = '⏳ 이미지 인식 중... (몇 초 걸릴 수 있음)';
+  label.style.pointerEvents = 'none';
+  label.style.opacity = '0.6';
+  try {
+    const { createWorker } = await import('https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.esm.min.js');
+    const worker = await createWorker('kor+eng');
+    const { data } = await worker.recognize(file);
+    await worker.terminate();
+
+    const parsed = parseReceiptText(data.text || '');
+    let filled = [];
+    if(parsed.name) { document.getElementById('in-raw-name').value = parsed.name; filled.push('재료명'); }
+    if(parsed.qty)  { document.getElementById('in-raw-qty').value = parsed.qty; filled.push('입고량'); }
+    if(parsed.unit) { document.getElementById('in-raw-unit').value = parsed.unit; }
+    if(parsed.price){ document.getElementById('in-raw-price').value = parsed.price; filled.push('매입총액'); }
+
+    if(filled.length > 0) {
+      statusEl.style.color = 'var(--accent-green)';
+      statusEl.textContent = '✅ ' + filled.join('/') + ' 자동 입력됨. 값을 확인하고 입고 등록을 눌러주세요. (OCR은 완벽하지 않을 수 있음)';
+      toast('OCR 인식 완료 - 값을 확인 후 등록하세요', 'ok');
+    } else {
+      statusEl.style.color = 'var(--accent-rose)';
+      statusEl.textContent = '⚠️ 사진에서 항목을 찾지 못했습니다. 직접 입력해주세요.';
+      toast('OCR 인식 결과 없음', 'err');
+    }
+  } catch(err) {
+    statusEl.style.color = 'var(--accent-rose)';
+    statusEl.textContent = '⚠️ 인식 실패: ' + err.message + ' (직접 입력해주세요)';
+    toast('OCR 인식 실패', 'err');
+  } finally {
+    label.style.pointerEvents = '';
+    label.style.opacity = '';
+    e.target.value = '';
+  }
+};
+
+// 아주 단순한 규칙 기반 파서. 정식 명세서 양식(품명/수량/단가/공급가액 표)이 아니어도
+// 최대한 값을 추정하되, 확신이 없으면 비워둔다.
+function parseReceiptText(text) {
+  const lines = text.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+  // 줄 전체를 버릴 노이즈 단어(라벨이 아니라 순수 헤더/합계성 단어일 때만)
+  const noisyWholeLine = ['거래명세서','명세서','영수증','사업자등록번호','공급받는자','공급자'];
+  // 줄 앞에 라벨로 붙는 경우, 라벨만 떼어내고 나머지는 후보로 사용
+  const labelPrefix = /^(품명|재료명|품목명|상품명|품목|규격|비고)\s*[:：]?\s*/;
+
+  // 매입총액 추정: 콤마 포함 3자리 이상 숫자 또는 4자리 이상 숫자 중 가장 큰 값
+  // (부가세 포함 합계가 보통 가장 큰 값이라 실제 지출액과 가장 가까움)
+  let bestPrice = 0;
+  const priceRegex = /([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,})\s*원?/g;
+  let m;
+  while((m = priceRegex.exec(text)) !== null) {
+    const v = Number(m[1].replace(/,/g, ''));
+    if(v > bestPrice && v < 100000000) bestPrice = v;
+  }
+
+  // 입고량+단위 추정: 숫자 뒤에 g/kg/ea/개/L/ml 패턴. 앱 입력 단위가 g/ea/kg/L 4종뿐이라
+  // ml/리터 표기는 L 단위로 환산한다 (500ml -> 0.5L).
+  let qty = null, unit = null;
+  const qtyRegex = /([0-9]+(?:\.[0-9]+)?)\s*(kg|ml|g|ea|개|L|l|리터)/i;
+  const qm = text.match(qtyRegex);
+  if(qm) {
+    const rawVal = Number(qm[1]);
+    const u = qm[2].toLowerCase();
+    if(u === 'ml') { unit = 'L'; qty = String(Math.round((rawVal / 1000) * 1000) / 1000); }
+    else if(u === 'kg') { unit = 'kg'; qty = qm[1]; }
+    else if(u === 'g') { unit = 'g'; qty = qm[1]; }
+    else if(u === 'l' || u === '리터') { unit = 'L'; qty = qm[1]; }
+    else { unit = 'ea'; qty = qm[1]; }
+  }
+
+  // 재료명 추정: 라벨 prefix를 뗀 뒤, 숫자/단위/노이즈 단어를 제거하고 남는 첫 유효 줄.
+  // "단가", "수량" 같은 표 헤더 단어만 남는 줄은 후보에서 제외(정확히 일치할 때만).
+  const exactNoiseWords = ['단가','수량','품명','합계','금액','비고','규격','공급가액','부가세','사업자','등록번호','전화','계','품목'];
+  let name = '';
+  for (let line of lines) {
+    if (noisyWholeLine.some(function(w) { return line.indexOf(w) !== -1; })) continue;
+    line = line.replace(labelPrefix, '');
+    let candidate = line
+      .replace(/[0-9,]+(?:\.[0-9]+)?\s*(kg|ml|g|ea|개|L|l|리터|원|%)?/g, '')
+      .replace(/[:：\-_/]/g, '')
+      .trim();
+    if (candidate.length >= 1 && !exactNoiseWords.includes(candidate)) { name = candidate; break; }
+  }
+
+  return { name: name, qty: qty, unit: unit, price: bestPrice || null };
+}
+
+window.renderRaw = function() {
+  let html = '';
+  if(rawCache.length > 0) {
+    rawCache.forEach(function(r) {
+      const min = (r.minQty != null) ? r.minQty : 5;
+      const low = r.qty <= min;
+      const suggestQty = low ? Math.ceil((min * 2) - r.qty) : 0;
+      html += '<div class="glass-card' + (low ? ' low-stock' : '') + '" style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem;">' +
+        '<div><b>' + esc(r.name) + '</b>' + (low ? ' <span class="stock-badge" style="background:var(--accent-rose); color:#fff;">부족</span>' : '') +
+        '<div style="font-size:0.62rem; color:var(--muted);">' + (Math.round(r.qty * 100) / 100) + r.unit + ' · 평균단가 ' + Math.round(r.unitPrice || 0).toLocaleString() + '원/' + r.unit + '</div>' +
+        (low ? '<div style="font-size:0.62rem; color:var(--accent-rose); font-weight:700; margin-top:2px;">💡 ' + suggestQty + r.unit + ' 이상 발주 추천 (최소재고의 2배 기준)</div>' : '') +
+        '</div>' +
+        '<button onclick="deleteRaw(\'' + r.id + '\')" class="btn-sm" style="background:#e11d48; color:#fff;">🗑️</button></div>';
+    });
+  } else { html = '<p class="text-center" style="font-size:0.7rem; color:var(--muted);">등록된 재고 없음</p>'; }
+  document.getElementById('raw-inventory-list').innerHTML = html;
+};
+
+window.deleteRaw = async function(id) {
+  if(!requireOnline('재고 삭제')) return;
+  if(!confirm('해당 재고를 삭제하시겠습니까?')) return;
+  try { await deleteDoc(storeDocRef('raw', id)); toast('삭제되었습니다.', 'ok'); }
+  catch(err) { toast('삭제 실패: ' + err.message, 'err'); }
+};
+
+window.updateSelects = function() {
+  const sel = document.getElementById('sel-raw');
+  if(!sel) return;
+  let html = '';
+  if(rawCache.length > 0) rawCache.forEach(function(r) { html += '<option value="' + r.id + '">' + esc(r.name) + '</option>'; });
+  else html = '<option value="">재고없음</option>';
+  sel.innerHTML = html;
+};
+
+// ============================================================
+// 메뉴 / 레시피
+// ============================================================
+window.addIngredientToTemp = function() {
+  const rawId = document.getElementById('sel-raw').value;
+  const qty = Number(document.getElementById('in-recipe-qty').value) || 0;
+  const raw = rawCache.find(function(x) { return x.id === rawId; });
+  if(!raw || qty <= 0) return toast('재료 선택 및 용량 입력 확인', 'err');
+  tempRecipe.push({ rawId: rawId, name: raw.name, qty: qty });
+  renderTempRecipe();
+  document.getElementById('in-recipe-qty').value = '';
+  updateRecipeCalc();
+};
+
+window.renderTempRecipe = function() {
+  let html = '';
+  tempRecipe.forEach(function(t, i) {
+    html += '<span style="background:var(--primary-bg); color:var(--primary); padding:2px 4px; border-radius:4px; font-size:0.65rem; cursor:pointer;" onclick="removeTempIngredient(' + i + ')">' + esc(t.name) + ' ' + t.qty + ' ✕</span>';
+  });
+  document.getElementById('temp-recipe-list').innerHTML = html;
+};
+
+window.removeTempIngredient = function(i) { tempRecipe.splice(i, 1); renderTempRecipe(); updateRecipeCalc(); };
+
+window.updateRecipeCalc = function() {
+  let cost = 0;
+  tempRecipe.forEach(function(rec) {
+    const raw = rawCache.find(function(x) { return x.id === rec.rawId; });
+    if(raw) cost += (raw.unitPrice || 0) * rec.qty;
+  });
+  document.getElementById('calc-cost').innerText = Math.round(cost).toLocaleString() + '원';
+  const targetMargin = Number(document.getElementById('in-target-margin').value) || 0;
+  const suggestPrice = (targetMargin < 100 && targetMargin >= 0) ? cost / (1 - targetMargin / 100) : 0;
+  document.getElementById('calc-suggest').innerText = Math.round(suggestPrice).toLocaleString() + '원';
+  const price = Number(document.getElementById('in-menu-price').value) || 0;
+  const realMarginEl = document.getElementById('calc-real-margin');
+  if(price > 0) {
+    const realMargin = ((price - cost) / price) * 100;
+    realMarginEl.innerText = '현재 입력가 기준 마진율: ' + realMargin.toFixed(1) + '% (이익 ' + Math.round(price - cost).toLocaleString() + '원)';
+  } else { realMarginEl.innerText = ''; }
+};
+
+window.saveMenu = async function() {
+  if(!requireOnline('메뉴 저장')) return;
+  const name = document.getElementById('in-menu-name').value.trim();
+  const price = Number(document.getElementById('in-menu-price').value) || 0;
+  const category = document.getElementById('in-menu-category').value;
+  const imageUrl = document.getElementById('in-menu-image').value.trim();
+  // 목표마진을 메뉴에 같이 저장 -> 이후 원재료 단가 변동 알림·미달 배지 판단 기준으로 재사용.
+  const targetMargin = Number(document.getElementById('in-target-margin').value);
+  if(!name || price <= 0) return toast('메뉴명 및 금액 입력 확인', 'err');
+  try {
+    if(editingMenuId) {
+      await updateDoc(storeDocRef('menus', editingMenuId), { name: name, price: price, recipe: tempRecipe.slice(), category: category, imageUrl: imageUrl, targetMargin: targetMargin });
+      toast('메뉴 수정 완료', 'ok');
+    } else {
+      await addDoc(storeCol('menus'), { name: name, price: price, recipe: tempRecipe.slice(), category: category, imageUrl: imageUrl, targetMargin: targetMargin });
+      toast('메뉴 저장 완료', 'ok');
+    }
+    cancelEditMenu();
+  } catch(err) { toast('저장 실패: ' + err.message, 'err'); }
+};
+
+window.editMenu = function(id) {
+  const m = menuCache.find(function(x) { return x.id === id; });
+  if(!m) return;
+  editingMenuId = id;
+  document.getElementById('recipe-form-title').innerText = '메뉴 수정 중: ' + m.name;
+  document.getElementById('in-menu-name').value = m.name;
+  document.getElementById('in-menu-price').value = m.price;
+  document.getElementById('in-menu-category').value = m.category || '기타';
+  document.getElementById('in-menu-image').value = m.imageUrl || '';
+  document.getElementById('in-target-margin').value = menuTargetMargin(m);
+  document.getElementById('menu-image-preview-slot').innerHTML = m.imageUrl ? ('<img src="' + esc(m.imageUrl) + '" style="width:80px;height:80px;object-fit:cover;border-radius:0.4rem;margin-top:0.3rem;" onerror="this.style.display=\'none\'">') : '';
+  tempRecipe = (m.recipe || []).slice();
+  renderTempRecipe();
+  updateRecipeCalc();
+  window.scrollTo(0, 0);
+};
+
+window.cancelEditMenu = function() {
+  editingMenuId = null;
+  document.getElementById('recipe-form-title').innerText = '메뉴 & 레시피 등록';
+  document.getElementById('in-menu-name').value = '';
+  document.getElementById('in-menu-price').value = '';
+  document.getElementById('in-menu-category').value = '음료';
+  document.getElementById('in-menu-image').value = '';
+  document.getElementById('in-target-margin').value = DEFAULT_TARGET_MARGIN;
+  document.getElementById('menu-image-preview-slot').innerHTML = '';
+  const fileInput = document.getElementById('in-menu-image-file');
+  if(fileInput) fileInput.value = '';
+  tempRecipe = [];
+  renderTempRecipe();
+  updateRecipeCalc();
+};
+
+window.handleMenuImageFile = async function(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!requireOnline('이미지 업로드')) { e.target.value = ''; return; }
+  if(file.size > 3 * 1024 * 1024) { toast('이미지 용량은 3MB 이하로 올려주세요.', 'err'); e.target.value = ''; return; }
+  const slot = document.getElementById('menu-image-preview-slot');
+  slot.innerHTML = '<p style="font-size:0.65rem; color:var(--muted);">업로드 중...</p>';
+  try {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = 'stores/' + myProfile.storeId + '/menu-images/' + Date.now() + '_' + safeName;
+    const r = storageRef(storageFs, path);
+    await uploadBytes(r, file);
+    const url = await getDownloadURL(r);
+    document.getElementById('in-menu-image').value = url;
+    slot.innerHTML = '<img src="' + url + '" style="width:80px;height:80px;object-fit:cover;border-radius:0.4rem;margin-top:0.3rem;">';
+    toast('이미지 업로드 완료', 'ok');
+  } catch(err) {
+    toast('업로드 실패: ' + err.message + ' (Firebase Storage가 활성화되어 있는지 확인해주세요)', 'err');
+    slot.innerHTML = '';
+  }
+};
+
+window.importMenuCsv = async function(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!requireOnline('CSV 가져오기')) { e.target.value = ''; return; }
+  const statusEl = document.getElementById('csv-import-status');
+  statusEl.innerText = '읽는 중...';
+  try {
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+    let added = 0, skipped = 0;
+    for(let i = 0; i < lines.length; i++) {
+      const parts = lines[i].split(',').map(function(p) { return p.trim().replace(/^"|"$/g, ''); });
+      if(parts.length < 2) { skipped++; continue; }
+      const name = parts[0];
+      const price = Number(parts[1].replace(/[^0-9.]/g, ''));
+      if(!name || !price || isNaN(price) || price <= 0 || /^(메뉴명|상품명|name|품목)$/i.test(name)) { skipped++; continue; }
+      await addDoc(storeCol('menus'), { name: name, price: price, category: '기타', recipe: [], imageUrl: '' });
+      added++;
+    }
+    statusEl.innerText = '✅ ' + added + '개 메뉴 추가됨' + (skipped > 0 ? ' (건너뜀 ' + skipped + '줄)' : '');
+    toast(added + '개 메뉴를 가져왔습니다.', 'ok');
+  } catch(err) {
+    statusEl.innerText = '';
+    toast('가져오기 실패: ' + err.message, 'err');
+  } finally {
+    e.target.value = '';
+  }
+};
+
+window.renderSavedMenus = function() {
+  let html = '';
+  menuCache.forEach(function(m) {
+    const cost = menuCost(m);
+    const marginNum = m.price > 0 ? ((m.price - cost) / m.price) * 100 : 0;
+    const margin = marginNum.toFixed(0);
+    const target = menuTargetMargin(m);
+    const belowTarget = m.price > 0 && marginNum < target;
+    html += '<div class="glass-card' + (belowTarget ? ' low-stock' : '') + '" style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem;">' +
+      '<div onclick="editMenu(\'' + m.id + '\')" style="cursor:pointer; flex:1; display:flex; gap:0.5rem; align-items:center;">' +
+      (m.imageUrl ? '<img src="' + esc(m.imageUrl) + '" style="width:40px; height:40px; object-fit:cover; border-radius:0.4rem;" onerror="this.style.display=\'none\'">' : '') +
+      '<div><b>' + esc(m.name) + '</b> (' + m.price.toLocaleString() + '원) <span style="font-size:0.58rem; background:var(--primary-bg); color:var(--primary); padding:1px 5px; border-radius:6px;">' + esc(m.category || '기타') + '</span>' +
+      (belowTarget ? ' <span class="stock-badge" style="background:var(--accent-rose); color:#fff;">목표마진 미달</span>' : '') +
+      '<div style="font-size:0.62rem; color:' + (belowTarget ? 'var(--accent-rose)' : 'var(--muted)') + '; font-weight:' + (belowTarget ? '800' : '400') + ';">원가 ' + Math.round(cost).toLocaleString() + '원 · 마진 ' + margin + '% (목표 ' + target + '%)</div></div></div>' +
+      '<button onclick="deleteMenu(\'' + m.id + '\')" class="btn-sm" style="background:#e11d48; color:#fff;">🗑️</button></div>';
+  });
+  document.getElementById('saved-menu-list').innerHTML = html;
+};
+
+window.deleteMenu = async function(id) {
+  if(!requireOnline('메뉴 삭제')) return;
+  if(!confirm('메뉴를 삭제하시겠습니까?')) return;
+  try {
+    if(id === editingMenuId) cancelEditMenu();
+    await deleteDoc(storeDocRef('menus', id));
+    toast('삭제되었습니다.', 'ok');
+  } catch(err) { toast('삭제 실패: ' + err.message, 'err'); }
+};
+
+// ============================================================
+// 리포트
+// ============================================================
+function getPeriodRange(period) {
+  const now = new Date();
+  if(period === 'day') {
+    const from = startOfDay(now);
+    const prevFrom = new Date(from); prevFrom.setDate(prevFrom.getDate() - 1);
+    const prevTo = new Date(from);
+    return { from: from, prevFrom: prevFrom, prevTo: prevTo };
+  } else if(period === 'week') {
+    const from = startOfDay(now); from.setDate(from.getDate() - 6);
+    const prevFrom = new Date(from); prevFrom.setDate(prevFrom.getDate() - 7);
+    const prevTo = new Date(from);
+    return { from: from, prevFrom: prevFrom, prevTo: prevTo };
+  } else if(period === 'year') {
+    const from = new Date(now.getFullYear(), 0, 1);
+    const prevFrom = new Date(now.getFullYear() - 1, 0, 1);
+    const prevTo = from;
+    return { from: from, prevFrom: prevFrom, prevTo: prevTo };
+  } else {
+    const from = new Date(now.getFullYear(), now.getMonth(), 1);
+    const prevFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevTo = from;
+    return { from: from, prevFrom: prevFrom, prevTo: prevTo };
+  }
+}
+
+async function fetchSalesRange(from, to) {
+  let q;
+  if(to) q = query(storeCol('sales'), where('date', '>=', Timestamp.fromDate(from)), where('date', '<', Timestamp.fromDate(to)), orderBy('date', 'asc'));
+  else q = query(storeCol('sales'), where('date', '>=', Timestamp.fromDate(from)), orderBy('date', 'asc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+}
+
+// ============================================================
+// 재방문/단골 관리 — 기능 #8
+// 별도 컬렉션을 새로 만들지 않고, sales 문서에 선택적으로 붙는 customerPhone(뒷 4자리)만으로
+// 클라이언트에서 집계한다. 새 컬렉션이 없으니 firestore.rules 변경도 필요 없음.
+// "방문 횟수"는 sale 문서 개수가 아니라 "날짜가 다른 날" 수로 센다 — 장바구니에 메뉴 5개를
+// 담아 한 번에 결제하면 sale 문서가 5개 생기는데, 이걸 5번 방문으로 세면 안 되기 때문.
+// ============================================================
+const LOYAL_VISIT_THRESHOLD = 3;      // 이 횟수 이상 방문하면 "단골" 배지
+const REVISIT_ALERT_DAYS = 21;        // 단골인데 이만큼 안 오면 "재방문 유도" 배지
+
+function dayKey(d) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+
+function aggregateCustomers(sales) {
+  const map = {};
+  sales.forEach(function(s) {
+    if(!s.customerPhone) return;
+    const phone = s.customerPhone;
+    if(!map[phone]) map[phone] = { phone: phone, visitDays: {}, totalSpend: 0, orderCount: 0, lastDate: null };
+    const d = toDate(s.date);
+    map[phone].visitDays[dayKey(d)] = true;
+    map[phone].totalSpend += s.price;
+    map[phone].orderCount += 1;
+    if(!map[phone].lastDate || d > map[phone].lastDate) map[phone].lastDate = d;
+  });
+  return Object.keys(map).map(function(phone) {
+    const c = map[phone];
+    return {
+      phone: phone,
+      visits: Object.keys(c.visitDays).length,
+      totalSpend: c.totalSpend,
+      orderCount: c.orderCount,
+      lastDate: c.lastDate
+    };
+  });
+}
+
+window.renderLoyalCustomers = async function() {
+  const summaryEl = document.getElementById('loyal-customer-summary');
+  const listEl = document.getElementById('loyal-customer-list');
+  if(!summaryEl || !listEl) return;
+  const from = new Date(); from.setDate(from.getDate() - 90);
+  const sales90 = await fetchSalesRange(from, null);
+  const customers = aggregateCustomers(sales90);
+  customers.sort(function(a, b) { return (b.visits - a.visits) || (b.totalSpend - a.totalSpend); });
+
+  const now = new Date();
+  const loyalCustomers = customers.filter(function(c) { return c.visits >= LOYAL_VISIT_THRESHOLD; });
+  const needsRevisitCall = loyalCustomers.filter(function(c) {
+    const daysSince = Math.floor((now - c.lastDate) / 86400000);
+    return daysSince >= REVISIT_ALERT_DAYS;
+  });
+
+  summaryEl.innerHTML =
+    '<div class="grid-3">' +
+      '<div class="glass-card text-center" style="padding:0.4rem;"><p style="font-size:0.56rem; color:var(--muted);">전화번호 남긴 손님</p><p style="font-size:0.75rem; font-weight:900;">' + customers.length + '명</p></div>' +
+      '<div class="glass-card text-center" style="padding:0.4rem; border-color:var(--primary);"><p style="font-size:0.56rem; color:var(--primary);">단골(' + LOYAL_VISIT_THRESHOLD + '회+)</p><p style="font-size:0.75rem; font-weight:900; color:var(--primary);">' + loyalCustomers.length + '명</p></div>' +
+      '<div class="glass-card text-center" style="padding:0.4rem; border-color:#f43f5e;"><p style="font-size:0.56rem; color:#f43f5e;">재방문 유도 필요</p><p style="font-size:0.75rem; font-weight:900; color:#f43f5e;">' + needsRevisitCall.length + '명</p></div>' +
+    '</div>';
+
+  if(customers.length === 0) {
+    listEl.innerHTML = '<p style="font-size:0.65rem; color:var(--muted); margin-top:0.4rem;">아직 전화번호를 남긴 주문이 없습니다. POS 결제 화면에서 입력해보세요.</p>';
+    return;
+  }
+
+  listEl.innerHTML = customers.slice(0, 20).map(function(c) {
+    const daysSince = Math.floor((now - c.lastDate) / 86400000);
+    const isLoyal = c.visits >= LOYAL_VISIT_THRESHOLD;
+    const needsRevisit = isLoyal && daysSince >= REVISIT_ALERT_DAYS;
+    const badges = (isLoyal ? '<span style="font-size:0.56rem; background:var(--primary-bg); color:var(--primary); padding:1px 5px; border-radius:6px; margin-left:4px;">단골</span>' : '') +
+      (needsRevisit ? '<span style="font-size:0.56rem; background:#fee2e2; color:#dc2626; padding:1px 5px; border-radius:6px; margin-left:4px;">재방문 유도</span>' : '');
+    return '<div style="display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0; border-bottom:1px solid var(--card-border); font-size:0.68rem;">' +
+      '<div>📞 ****' + esc(c.phone) + badges + '<br><span style="font-size:0.58rem; color:var(--muted);">방문 ' + c.visits + '회 · 마지막 방문 ' + daysSince + '일 전</span></div>' +
+      '<b>' + c.totalSpend.toLocaleString() + '원</b>' +
+      '</div>';
+  }).join('');
+};
+
+async function periodSales() {
+  const period = document.getElementById('sales-period').value;
+  const range = getPeriodRange(period);
+  return fetchSalesRange(range.from, null);
+}
+
+// ============================================================
+// 지출관리(변동비) — 기능 #6
+// 재료비(원가)는 재고 등록 시 이미 menuCost()/판매 시점 cost로 자동 반영되므로,
+// 여기서 다루는 "변동비"는 그 외의 매출 연동 지출(카드수수료·배달앱수수료·포장재 등)만을 대상으로 한다.
+// ============================================================
+async function fetchExpensesRange(from, to) {
+  let q;
+  if(to) q = query(storeCol('expenses'), where('date', '>=', Timestamp.fromDate(from)), where('date', '<', Timestamp.fromDate(to)), orderBy('date', 'desc'));
+  else q = query(storeCol('expenses'), where('date', '>=', Timestamp.fromDate(from)), orderBy('date', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+}
+
+async function periodExpenses() {
+  const period = document.getElementById('sales-period').value;
+  const range = getPeriodRange(period);
+  return fetchExpensesRange(range.from, null);
+}
+
+window.addExpense = async function() {
+  if(!requireOnline('지출 등록')) return;
+  const amount = Number(document.getElementById('in-expense-amount').value) || 0;
+  const category = document.getElementById('in-expense-category').value;
+  const memo = document.getElementById('in-expense-memo').value.trim();
+  if(amount <= 0) return toast('지출 금액을 확인하세요.', 'err');
+  try {
+    await addDoc(storeCol('expenses'), {
+      amount: amount, category: category, memo: memo,
+      staffName: myProfile.name || myProfile.email, staffUid: myProfile.uid,
+      date: serverTimestamp()
+    });
+    document.getElementById('in-expense-amount').value = '';
+    document.getElementById('in-expense-memo').value = '';
+    toast('지출이 등록되었습니다.', 'ok');
+    if(currentPage === 'report') renderDashboard();
+  } catch(err) { toast('등록 실패: ' + err.message, 'err'); }
+};
+
+window.deleteExpense = async function(id) {
+  if(!myProfile || myProfile.role !== 'master') return toast('관리자만 삭제할 수 있습니다.', 'err');
+  if(!requireOnline('지출 삭제')) return;
+  if(!confirm('이 지출 기록을 삭제하시겠습니까?')) return;
+  try {
+    await deleteDoc(storeDocRef('expenses', id));
+    toast('삭제되었습니다.', 'ok');
+    if(currentPage === 'report') renderDashboard();
+  } catch(err) { toast('삭제 실패: ' + err.message, 'err'); }
+};
+
+function renderExpenseList(expenses, total) {
+  const el = document.getElementById('expense-list');
+  if(!el) return;
+  const canDelete = myProfile && myProfile.role === 'master';
+  if(!expenses.length) {
+    el.innerHTML = '<p style="color:var(--muted); font-size:0.65rem;">이 기간에 등록된 변동비 지출이 없습니다.</p>';
+    return;
+  }
+  el.innerHTML = '<p style="font-weight:800; margin-bottom:0.3rem;">기간 합계: <span style="color:#f43f5e;">' + total.toLocaleString() + '원</span> (' + expenses.length + '건)</p>' +
+    expenses.map(function(e) {
+      const d = e.date ? toDate(e.date) : null;
+      const dateStr = d ? (d.getMonth() + 1) + '/' + d.getDate() : '';
+      return '<div style="display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0; border-bottom:1px solid var(--card-border);">' +
+        '<div><b>' + esc(e.category || '기타') + '</b> · ' + amount_esc(e.amount) + '원' + (e.memo ? ' <span style="color:var(--muted);">(' + esc(e.memo) + ')</span>' : '') + '<br><span style="font-size:0.58rem; color:var(--muted);">' + dateStr + (e.staffName ? ' · ' + esc(e.staffName) : '') + '</span></div>' +
+        (canDelete ? '<button onclick="deleteExpense(\'' + e.id + '\')" class="btn-sm" style="background:#fee2e2; color:#dc2626; padding:2px 6px;">삭제</button>' : '') +
+        '</div>';
+    }).join('');
+}
+
+function amount_esc(n) { return Number(n || 0).toLocaleString(); }
+
+window.renderDashboard = async function() {
+  const period = document.getElementById('sales-period').value;
+  const range = getPeriodRange(period);
+  const sales = await periodSales();
+  const prevSales = await fetchSalesRange(range.prevFrom, range.prevTo);
+  const expenses = await periodExpenses();
+  const varExpenseTotal = expenses.reduce(function(a, b) { return a + (b.amount || 0); }, 0);
+  document.getElementById('kpi-var-expense').innerText = varExpenseTotal.toLocaleString() + '원';
+  renderExpenseList(expenses, varExpenseTotal);
+
+  const totalRev = sales.reduce(function(a, b) { return a + b.price; }, 0);
+  const totalCogs = sales.reduce(function(a, b) { return a + (b.cost || 0); }, 0);
+  const profit = totalRev - totalCogs;
+  document.getElementById('kpi-total').innerText = totalRev.toLocaleString() + '원';
+  document.getElementById('kpi-cogs').innerText = totalCogs.toLocaleString() + '원';
+  document.getElementById('kpi-profit').innerText = profit.toLocaleString() + '원';
+  renderMarginBenchmark(totalRev, totalCogs);
+  renderLoyalCustomers();
+
+  const prevRev = prevSales.reduce(function(a, b) { return a + b.price; }, 0);
+  const changeEl = document.getElementById('kpi-total-change');
+  if(prevRev > 0) {
+    const pct = ((totalRev - prevRev) / prevRev) * 100;
+    const label = period === 'day' ? '전일 대비' : (period === 'week' ? '전주 대비' : (period === 'year' ? '작년 대비' : '전달 대비'));
+    changeEl.innerText = (pct >= 0 ? '▲ +' : '▼ ') + pct.toFixed(1) + '% (' + label + ')';
+    changeEl.style.color = pct >= 0 ? '#34d399' : '#fb7185';
+  } else if(totalRev > 0) {
+    changeEl.innerText = '비교할 이전 데이터 없음';
+    changeEl.style.color = '#94a3b8';
+  } else {
+    changeEl.innerText = '';
+  }
+
+  const vatEl = document.getElementById('kpi-vat');
+  if(storeInfo.vatEnabled) {
+    const rate = storeInfo.vatRate != null ? storeInfo.vatRate : 10;
+    const supply = totalRev / (1 + rate / 100);
+    const vat = totalRev - supply;
+    vatEl.innerText = Math.round(vat).toLocaleString() + '원';
+  } else {
+    vatEl.innerText = '설정 안 함';
+  }
+
+  const netEl = document.getElementById('kpi-net');
+  const fc = storeInfo.fixedCosts || {};
+  const monthlyFixed = (fc.rent || 0) + (fc.labor || 0) + (fc.util || 0);
+  let allocated = 0;
+  if(period === 'day') allocated = monthlyFixed / 30;
+  else if(period === 'week') allocated = (monthlyFixed / 30) * 7;
+  else if(period === 'year') allocated = monthlyFixed * 12;
+  else allocated = monthlyFixed;
+  const netProfit = profit - allocated - varExpenseTotal;
+  netEl.innerText = Math.round(netProfit).toLocaleString() + '원' + (monthlyFixed > 0 ? '' : ' (고정비 미설정)');
+  netEl.style.color = netProfit >= 0 ? 'var(--primary)' : 'var(--accent-rose)';
+  let buckets, base;
+  if(period === 'day') {
+    buckets = Array(24).fill(0);
+    sales.forEach(function(s) { buckets[toDate(s.date).getHours()] += s.price; });
+  } else if(period === 'year') {
+    buckets = Array(12).fill(0);
+    sales.forEach(function(s) { buckets[toDate(s.date).getMonth()] += s.price; });
+  } else {
+    const days = period === 'week' ? 7 : new Date().getDate();
+    buckets = Array(days).fill(0);
+    base = period === 'week' ? (function() { const d = startOfDay(new Date()); d.setDate(d.getDate() - 6); return d; })() : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    sales.forEach(function(s) {
+      const diff = Math.floor((startOfDay(toDate(s.date)) - base) / 86400000);
+      if(diff >= 0 && diff < buckets.length) buckets[diff] += s.price;
+    });
+  }
+
+  const canvas = document.getElementById('pureCanvasChart');
+  if(canvas && canvas.parentElement) {
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const maxVal = Math.max.apply(Math, buckets.concat([10000]));
+    const barWidth = canvas.width / buckets.length;
+    const barColor = getComputedStyle(document.body).getPropertyValue('--primary').trim() || '#C9A227';
+    buckets.forEach(function(v, i) {
+      const h = (v / maxVal) * (canvas.height - 10);
+      ctx.fillStyle = barColor;
+      ctx.fillRect(i * barWidth, canvas.height - h, Math.max(barWidth - 1, 1), h);
+    });
+  }
+
+  const rankMap = {};
+  sales.forEach(function(s) {
+    if(!rankMap[s.menuName]) rankMap[s.menuName] = { qty: 0, rev: 0 };
+    rankMap[s.menuName].qty += 1;
+    rankMap[s.menuName].rev += s.price;
+  });
+  const rankArr = Object.keys(rankMap).map(function(k) { return { name: k, qty: rankMap[k].qty, rev: rankMap[k].rev }; });
+  rankArr.sort(function(a, b) { return b.rev - a.rev; });
+  let rankHtml = rankArr.length === 0 ? '<p style="text-align:center; color:var(--muted);">기간 내 판매 내역 없음</p>' : '';
+  rankArr.slice(0, 5).forEach(function(r, i) {
+    rankHtml += '<div style="display:flex; justify-content:space-between; padding:0.2rem 0; border-bottom:1px solid var(--card-border);"><span>' + (i + 1) + '. ' + esc(r.name) + ' (' + r.qty + '개)</span><b>' + r.rev.toLocaleString() + '원</b></div>';
+  });
+  document.getElementById('menu-rank-list').innerHTML = rankHtml;
+
+  const payMap = {};
+  sales.forEach(function(s) {
+    const pm = s.paymentMethod || '현금';
+    if(!payMap[pm]) payMap[pm] = { qty: 0, rev: 0 };
+    payMap[pm].qty += 1;
+    payMap[pm].rev += s.price;
+  });
+  const payIcons = { '현금': '💵', '카드': '💳', '간편결제': '📱' };
+  let payHtml = Object.keys(payMap).length === 0 ? '<p style="text-align:center; color:var(--muted);">기간 내 판매 내역 없음</p>' : '';
+  Object.keys(payMap).sort(function(a,b) { return payMap[b].rev - payMap[a].rev; }).forEach(function(pm) {
+    payHtml += '<div style="display:flex; justify-content:space-between; padding:0.2rem 0; border-bottom:1px solid var(--card-border);"><span>' + (payIcons[pm] || '💰') + ' ' + esc(pm) + ' (' + payMap[pm].qty + '건)</span><b>' + payMap[pm].rev.toLocaleString() + '원</b></div>';
+  });
+  document.getElementById('pay-method-rank-list').innerHTML = payHtml;
+};
+
+window.exportDashboardReport = async function() {
+  const sales = await periodSales();
+  let csv = '메뉴명,수량,매출,원가\n';
+  const map = {};
+  sales.forEach(function(s) {
+    if(!map[s.menuName]) map[s.menuName] = { qty: 0, rev: 0, cost: 0 };
+    map[s.menuName].qty++; map[s.menuName].rev += s.price; map[s.menuName].cost += (s.cost || 0);
+  });
+  Object.keys(map).forEach(function(k) { csv += k + ',' + map[k].qty + ',' + map[k].rev + ',' + Math.round(map[k].cost) + '\n'; });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = (storeInfo.name || 'store') + '_Report_' + new Date().toISOString().slice(0, 10) + '.csv';
+  link.click();
+};
+
+// ============================================================
+// 세무사 전달용 리포트 내보내기 — 기능 #7
+// 위 exportDashboardReport()(메뉴별 CSV)와 별개로, 선택한 기간의 손익 요약·결제수단별
+// 집계·변동비 지출 상세·메뉴별 판매 내역을 한 파일에 묶어 세무사에게 그대로 전달할 수
+// 있게 만든 CSV. 금액에 콤마/따옴표/줄바꿈이 섞여도 깨지지 않도록 csvField()로 이스케이프.
+// ※ 세금 신고 정식 증빙(세금계산서·카드매출전표 등)을 대체하는 문서가 아님을 파일 안에도 명시.
+// ============================================================
+function csvField(v) {
+  const s = String(v == null ? '' : v);
+  if(/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+window.exportTaxReport = async function() {
+  const period = document.getElementById('sales-period').value;
+  const periodLabelMap = { day: '오늘', week: '최근 7일', month: '이번 달', year: '올해' };
+  const sales = await periodSales();
+  const expenses = await periodExpenses();
+
+  const totalRev = sales.reduce(function(a, b) { return a + b.price; }, 0);
+  const totalCogs = sales.reduce(function(a, b) { return a + (b.cost || 0); }, 0);
+  const grossProfit = totalRev - totalCogs;
+  const grossMarginPct = totalRev > 0 ? (grossProfit / totalRev) * 100 : 0;
+
+  const fc = storeInfo.fixedCosts || {};
+  const monthlyFixed = (fc.rent || 0) + (fc.labor || 0) + (fc.util || 0);
+  let allocated = 0;
+  if(period === 'day') allocated = monthlyFixed / 30;
+  else if(period === 'week') allocated = (monthlyFixed / 30) * 7;
+  else if(period === 'year') allocated = monthlyFixed * 12;
+  else allocated = monthlyFixed;
+
+  const varExpenseTotal = expenses.reduce(function(a, b) { return a + (b.amount || 0); }, 0);
+  const netProfit = grossProfit - allocated - varExpenseTotal;
+
+  let vatLine = '부가세 미설정';
+  let vatAmount = 0;
+  if(storeInfo.vatEnabled) {
+    const rate = storeInfo.vatRate != null ? storeInfo.vatRate : 10;
+    const supply = totalRev / (1 + rate / 100);
+    vatAmount = totalRev - supply;
+    vatLine = '일반과세자 (부가세율 ' + rate + '%)';
+  }
+
+  const rows = [];
+  rows.push(['마진노트 — 세무사 전달용 리포트'].map(csvField).join(','));
+  rows.push(['매장명', storeInfo.name || ''].map(csvField).join(','));
+  rows.push(['기간', periodLabelMap[period] || period].map(csvField).join(','));
+  rows.push(['생성일시', new Date().toLocaleString()].map(csvField).join(','));
+  rows.push('');
+  rows.push(['[1] 손익 요약'].map(csvField).join(','));
+  rows.push(['항목', '금액(원)', '비고'].map(csvField).join(','));
+  rows.push(['총매출', totalRev, sales.length + '건'].map(csvField).join(','));
+  rows.push(['매출원가(재료비)', Math.round(totalCogs), ''].map(csvField).join(','));
+  rows.push(['매출총이익', Math.round(grossProfit), grossMarginPct.toFixed(1) + '%'].map(csvField).join(','));
+  rows.push(['부가세 예상액', Math.round(vatAmount), vatLine].map(csvField).join(','));
+  rows.push(['월 고정비 - 임대료', fc.rent || 0, ''].map(csvField).join(','));
+  rows.push(['월 고정비 - 인건비', fc.labor || 0, ''].map(csvField).join(','));
+  rows.push(['월 고정비 - 기타', fc.util || 0, ''].map(csvField).join(','));
+  rows.push(['고정비 기간 배분액', Math.round(allocated), '월 고정비를 선택 기간 기준으로 환산'].map(csvField).join(','));
+  rows.push(['변동비 지출 합계', varExpenseTotal, expenses.length + '건 (아래 [3] 상세 참고)'].map(csvField).join(','));
+  rows.push(['진짜 순이익', Math.round(netProfit), '매출총이익 - 고정비배분 - 변동비'].map(csvField).join(','));
+  rows.push('');
+
+  rows.push(['[2] 결제수단별 집계'].map(csvField).join(','));
+  rows.push(['결제수단', '건수', '매출액(원)'].map(csvField).join(','));
+  const payMap = {};
+  sales.forEach(function(s) {
+    const pm = s.paymentMethod || '현금';
+    if(!payMap[pm]) payMap[pm] = { qty: 0, rev: 0 };
+    payMap[pm].qty += 1; payMap[pm].rev += s.price;
+  });
+  Object.keys(payMap).forEach(function(pm) { rows.push([pm, payMap[pm].qty, payMap[pm].rev].map(csvField).join(',')); });
+  if(Object.keys(payMap).length === 0) rows.push(['(내역 없음)', 0, 0].map(csvField).join(','));
+  rows.push('');
+
+  rows.push(['[3] 변동비 지출 상세'].map(csvField).join(','));
+  rows.push(['날짜', '카테고리', '금액(원)', '메모', '등록자'].map(csvField).join(','));
+  expenses.forEach(function(e) {
+    const d = e.date ? toDate(e.date) : null;
+    const dateStr = d ? (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')) : '';
+    rows.push([dateStr, e.category || '기타', e.amount || 0, e.memo || '', e.staffName || ''].map(csvField).join(','));
+  });
+  if(expenses.length === 0) rows.push(['(내역 없음)', '', '', '', ''].map(csvField).join(','));
+  rows.push('');
+
+  rows.push(['[4] 메뉴별 판매 내역'].map(csvField).join(','));
+  rows.push(['메뉴명', '판매수량', '매출액(원)', '매출원가(원)', '마진율(%)'].map(csvField).join(','));
+  const menuMap = {};
+  sales.forEach(function(s) {
+    if(!menuMap[s.menuName]) menuMap[s.menuName] = { qty: 0, rev: 0, cost: 0 };
+    menuMap[s.menuName].qty++; menuMap[s.menuName].rev += s.price; menuMap[s.menuName].cost += (s.cost || 0);
+  });
+  Object.keys(menuMap).forEach(function(k) {
+    const m = menuMap[k];
+    const marginPct = m.rev > 0 ? ((m.rev - m.cost) / m.rev) * 100 : 0;
+    rows.push([k, m.qty, m.rev, Math.round(m.cost), marginPct.toFixed(1)].map(csvField).join(','));
+  });
+  if(Object.keys(menuMap).length === 0) rows.push(['(내역 없음)', '', '', '', ''].map(csvField).join(','));
+  rows.push('');
+  rows.push(['※ 본 리포트는 마진노트 앱 기록 기준 참고 자료이며, 세금 신고를 위한 정식 증빙(세금계산서·카드매출전표 등)을 대체하지 않습니다.'].map(csvField).join(','));
+
+  const csv = rows.join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = (storeInfo.name || 'store') + '_세무사전달용_' + (periodLabelMap[period] || period) + '_' + new Date().toISOString().slice(0, 10) + '.csv';
+  link.click();
+};
+
+// ============================================================
+// 구글 스프레드시트 내보내기
+// ============================================================
+window.saveSyncUrlLocal = function() {
+  localPrefs.sheetSyncUrl = document.getElementById('sheet-sync-url').value.trim();
+  saveLocalPrefs();
+  toast('동기화 URL이 이 기기에 저장되었습니다.', 'ok');
+};
+
+window.updateSyncInfo = function() {
+  const el = document.getElementById('sync-last-info');
+  if(!el) return;
+  el.innerText = localPrefs.lastSyncAt ? ('마지막 동기화: ' + new Date(localPrefs.lastSyncAt).toLocaleString()) : '아직 동기화한 적 없음';
+};
+
+window.syncToSheets = async function() {
+  if(!requireOnline('구글 시트 동기화')) return;
+  const url = localPrefs.sheetSyncUrl || document.getElementById('sheet-sync-url').value.trim();
+  if(!url) return toast('먼저 Apps Script 웹 앱 URL을 입력하세요.', 'err');
+  localPrefs.sheetSyncUrl = url;
+  saveLocalPrefs();
+  toast('☁️ 구글 시트로 전송 중...');
+
+  try {
+    const q = query(storeCol('sales'), orderBy('date', 'asc'), limit(2000));
+    const snap = await getDocs(q);
+    const sales = snap.docs.map(function(d) {
+      const v = d.data();
+      return { id: d.id, date: toDate(v.date).toISOString(), menuName: v.menuName, price: v.price, cost: v.cost || 0 };
+    });
+    const payload = { type: 'full_sync', raw: rawCache, menus: menuCache, sales: sales, timestamp: new Date().toISOString() };
+
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if(data && data.ok) {
+      localPrefs.lastSyncAt = new Date().toISOString();
+      saveLocalPrefs();
+      updateSyncInfo();
+      toast('✅ 동기화 완료 (매출 ' + sales.length + '건 전송)', 'ok');
+    } else {
+      toast('동기화 실패: ' + (data && data.error ? data.error : '알 수 없는 오류'), 'err');
+    }
+  } catch(err) {
+    toast('❌ 통신 오류: ' + err.message, 'err');
+  }
+};
+
+// ============================================================
+// 마감 정산
+// ============================================================
+window.closeDay = async function() {
+  if(!myProfile || myProfile.role !== 'master') return toast('관리자만 사용할 수 있습니다.', 'err');
+  if(!requireOnline('마감 정산')) return;
+  const today = startOfDay(new Date());
+  try {
+    const q = query(storeCol('sales'), where('date', '>=', Timestamp.fromDate(today)), orderBy('date', 'asc'));
+    const snap = await getDocs(q);
+    const todaySales = snap.docs.map(function(d) { return d.data(); });
+    const rev = todaySales.reduce(function(a, b) { return a + b.price; }, 0);
+    const cogs = todaySales.reduce(function(a, b) { return a + (b.cost || 0); }, 0);
+    const summary = '📅 ' + today.toLocaleDateString() + ' 마감 요약\n\n건수: ' + todaySales.length + '건\n매출: ' + rev.toLocaleString() + '원\n원가: ' + Math.round(cogs).toLocaleString() + '원\n매출총이익: ' + Math.round(rev - cogs).toLocaleString() + '원';
+    if(confirm(summary + '\n\n이 내용을 마감 기록으로 저장하시겠습니까? (매출 데이터는 삭제되지 않습니다)')) {
+      await addDoc(storeCol('closingHistory'), { date: today.toISOString(), count: todaySales.length, revenue: rev, cogs: Math.round(cogs), profit: Math.round(rev - cogs), closedBy: myProfile.name || myProfile.email });
+      toast('마감 기록이 저장되었습니다.', 'ok');
+    }
+  } catch(err) { toast('마감 처리 실패: ' + err.message, 'err'); }
+};
+</script>
+<script>
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').catch(function() {});
+  });
+}
+</script>
+</body>
+</html>
