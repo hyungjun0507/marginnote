@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function hasProfile() { return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function myProfile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function myStoreId() { return myProfile().storeId; }
+    function myRole() { return myProfile().role; }
+    function isMemberOfStore(storeId) { return hasProfile() && myStoreId() == storeId; }
+    function isMasterOfStore(storeId) { return isMemberOfStore(storeId) && myRole() == 'master'; }
+    // 신규: 이 storeId를 내가 실제로 소유하고 있다는 증명 문서가 있는지 확인
+    // (여러 매장 전환 기능의 핵심 안전장치 — 임의의 storeId로는 전환 불가)
+    function hasMembership(storeId) {
+      return exists(/databases/$(database)/documents/storeMemberships/$(request.auth.uid + '_' + storeId));
+    }
+
+    // ---------- 매장 ----------
+    match /stores/{storeId} {
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isMasterOfStore(storeId);
+      allow delete: if false;
+      match /raw/{docId} {
+        allow read, write: if isMemberOfStore(storeId);
+      }
+      match /menus/{docId} {
+        allow read: if isMemberOfStore(storeId);
+        allow write: if isMasterOfStore(storeId);
+      }
+      match /sales/{docId} {
+        allow read, create: if isMemberOfStore(storeId);
+        allow update, delete: if isMasterOfStore(storeId);
+      }
+      match /closingHistory/{docId} {
+        allow read, write: if isMasterOfStore(storeId);
+      }
+    }
+
+    // ---------- 매장 소유권 증명 (여러 매장 관리용, 신규) ----------
+    // 문서ID 형식: {내uid}_{storeId}  — 본인이 실제 owner인 매장에 대해서만 생성 가능
+    // 생성 이후에는 수정·삭제 불가(소유권 증명 기록은 고정), 조회는 본인 것만 가능
+    match /storeMemberships/{membershipId} {
+      allow get: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow list: if false;
+      allow create: if isSignedIn() &&
+        request.resource.data.uid == request.auth.uid &&
+        membershipId == (request.auth.uid + '_' + request.resource.data.storeId) &&
+        request.resource.data.role == 'master' &&
+        get(/databases/$(database)/documents/stores/$(request.resource.data.storeId)).data.ownerUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ---------- 사용자 프로필 (매장 소속/권한 정보) ----------
+    match /users/{uid} {
+      allow get: if isSignedIn() && (
+        request.auth.uid == uid ||
+        (hasProfile() && myRole() == 'master' && myStoreId() == resource.data.storeId)
+      );
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == uid && (
+        (
+          request.resource.data.role == 'master' &&
+          get(/databases/$(database)/documents/stores/$(request.resource.data.storeId)).data.ownerUid == request.auth.uid
+        ) ||
+        (
+          request.resource.data.role == 'staff' &&
+          exists(/databases/$(database)/documents/inviteCodes/$(request.resource.data.usedCode)) &&
+          get(/databases/$(database)/documents/inviteCodes/$(request.resource.data.usedCode)).data.storeId == request.resource.data.storeId
+        )
+      );
+      // 수정 허용 범위: role은 절대 스스로 못 바꿈.
+      // storeId는 (A) 그대로 두거나 (B) storeMemberships로 소유권이 증명된 매장으로만 전환 가능.
+      // storeIds(표시용 배열)는 자유롭게 갱신 가능 — 실제 접근권한을 주는 필드가 아니라
+      // "내가 볼 수 있는 매장 목록"을 보여주기 위한 참고용 데이터라서 엄격 검증 불필요.
+      allow update: if isSignedIn() && request.auth.uid == uid &&
+        request.resource.data.role == resource.data.role && (
+          request.resource.data.storeId == resource.data.storeId ||
+          (resource.data.role == 'master' && hasMembership(request.resource.data.storeId))
+        );
+      allow delete: if false;
+    }
+
+    // ---------- 초대코드 ----------
+    match /inviteCodes/{code} {
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isMasterOfStore(request.resource.data.storeId);
+      allow delete: if isMasterOfStore(resource.data.storeId);
+      allow update: if false;
+    }
+  }
+}

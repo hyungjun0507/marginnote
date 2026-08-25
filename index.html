@@ -225,6 +225,7 @@ canvas { width: 100%; height: 100%; }
 </div>
 </header>
 <div id="offline-banner-slot"></div>
+<div id="trial-banner-slot"></div>
 <main>
 
 <section id="page-pos" class="page-content">
@@ -282,8 +283,9 @@ canvas { width: 100%; height: 100%; }
 <div class="glass-card" style="border: 2px solid #c084fc;">
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
 <h3 style="font-size:0.75rem; font-weight:900; color:#a855f7;">🔮 AI 매장 분석관</h3>
-<input type="password" id="ai-api-key" placeholder="Gemini Key" style="width:110px; font-size:0.6rem; margin:0; padding:0.3rem;" onchange="saveAiKeyLocal()">
+<input type="password" id="ai-api-key" placeholder="여기에 열쇠 붙여넣기" style="width:130px; font-size:0.6rem; margin:0; padding:0.3rem;" onchange="saveAiKeyLocal()">
 </div>
+<div id="ai-key-onboard-slot"></div>
 <div style="display:flex; gap:0.2rem; margin-bottom:0.4rem;">
 <button onclick="askAIQuick('오늘 매출과 손익을 평가해줘')" class="btn-sm" style="background:#e9d5ff; color:#6b21a8;">💡 매출 평가</button>
 <button onclick="askAIQuick('현재 재고 부족 상태를 진단해줘')" class="btn-sm" style="background:#e9d5ff; color:#6b21a8;">⚠️ 재고 진단</button>
@@ -302,6 +304,11 @@ canvas { width: 100%; height: 100%; }
 <div class="grid-2"><select id="in-raw-unit"><option value="g">그램 (g)</option><option value="ea">개 (ea)</option><option value="kg">킬로그램 (kg)</option><option value="L">리터 (L)</option></select><input type="number" id="in-raw-qty" placeholder="입고량"></div>
 <div class="grid-2"><input type="number" id="in-raw-price" placeholder="매입총액(원)"><input type="number" id="in-raw-min" placeholder="재고부족 기준(기본 5)"></div>
 <button onclick="addRawWithAverage()" class="btn-primary" style="margin-top:0.2rem;">입고 등록</button>
+<label class="btn-sm" id="ocr-upload-label" style="display:block; text-align:center; background:var(--input-bg); border:1.5px dashed var(--primary); color:var(--primary); cursor:pointer; margin-top:0.4rem; padding:0.5rem;">
+📷 명세서/영수증 사진으로 자동 입력 (베타)
+<input type="file" id="raw-ocr-file" accept="image/*" capture="environment" style="display:none;" onchange="handleRawOcrFile(event)">
+</label>
+<p id="ocr-status" style="font-size:0.6rem; color:var(--muted); margin-top:0.3rem;"></p>
 </div>
 <div id="raw-inventory-list"></div>
 </section>
@@ -365,6 +372,12 @@ canvas { width: 100%; height: 100%; }
 <input type="number" id="in-fixed-util" placeholder="기타(공과금 등)">
 </div>
 <button onclick="saveBizSettings()" class="btn-primary" style="margin-top:0.3rem;">사업 설정 저장</button>
+</div>
+<div id="store-switcher-card" class="glass-card hidden-page">
+<h3 style="font-size:0.75rem; font-weight:800; margin-bottom:0.4rem;">🏪 매장 전환 / 추가</h3>
+<div id="store-switcher-slot" style="margin-bottom:0.5rem;"></div>
+<input type="text" id="in-new-store-name" placeholder="새 매장 이름 (예: 형준카페 2호점)">
+<button onclick="createAdditionalStore()" class="btn-sm" style="background:#334155; color:#fff; margin-top:0.3rem;">➕ 새 매장 추가</button>
 </div>
 <div id="invite-card" class="glass-card hidden-page">
 <h3 style="font-size:0.75rem; font-weight:800; margin-bottom:0.4rem;">👥 직원 초대</h3>
@@ -496,6 +509,25 @@ function renderOfflineBanner() {
   slot.innerHTML = isOnline ? '' : '<div class="offline-banner">📴 오프라인 — 결제는 계속됩니다. 재고 입고·환불·메뉴 수정은 인터넷 연결 후 가능합니다.</div>';
 }
 
+// ---------- 체험판(trial) 배너 ----------
+// 기본값 14일 — 실제 체험 기간 정책은 확정된 값이 없어 통상적인 SaaS 기본값을 임시로 넣어둠. 형준님 확인 후 조정 필요.
+const TRIAL_DAYS = 14;
+function renderTrialBanner() {
+  const slot = document.getElementById('trial-banner-slot');
+  if(!slot) return;
+  if(!storeInfo || storeInfo.plan !== 'trial' || !storeInfo.trialStartedAt) { slot.innerHTML = ''; return; }
+  const started = toDate(storeInfo.trialStartedAt);
+  const daysPassed = Math.floor((Date.now() - started.getTime()) / (1000 * 60 * 60 * 24));
+  const daysLeft = TRIAL_DAYS - daysPassed;
+  if(daysLeft > 3) { slot.innerHTML = ''; return; }
+  if(daysLeft > 0) {
+    slot.innerHTML = '<div class="trial-banner" style="background:#fef3c7; color:#92400e; padding:0.5rem; border-radius:0.5rem; font-size:0.72rem; text-align:center; margin-bottom:0.4rem;">⏰ 체험 기간이 ' + daysLeft + '일 남았습니다.</div>';
+  } else {
+    // 아직 결제 시스템이 연결되어 있지 않아 기능을 막지 않고 안내만 표시함 — 결제 수단 확정 후 실제 제한 로직 추가 필요
+    slot.innerHTML = '<div class="trial-banner" style="background:#fee2e2; color:#991b1b; padding:0.5rem; border-radius:0.5rem; font-size:0.72rem; text-align:center; margin-bottom:0.4rem;">⏰ 체험 기간이 종료되었습니다. 계속 이용 관련 안내는 매장 관리자에게 문의해주세요.</div>';
+  }
+}
+
 // ---------- 전역 상태 ----------
 let myProfile = null;   // { storeId, role, name, email }
 let storeInfo = null;   // { name, ownerUid, currentInviteCode }
@@ -574,8 +606,10 @@ window.createStoreAccount = async function() {
     const storeRef = doc(collection(dbFs, 'stores'));
     const storeId = storeRef.id;
 
-    await setDoc(storeRef, { name: storeName, ownerUid: uid, createdAt: serverTimestamp(), plan: 'trial', currentInviteCode: null });
-    await setDoc(doc(dbFs, 'users', uid), { storeId: storeId, role: 'master', name: myName, email: email });
+    await setDoc(storeRef, { name: storeName, ownerUid: uid, createdAt: serverTimestamp(), plan: 'trial', trialStartedAt: serverTimestamp(), currentInviteCode: null });
+    // 소유권 증명 문서 — 나중에 매장을 전환할 때 보안규칙이 이 문서로 "진짜 내 매장인지" 확인함
+    await setDoc(doc(dbFs, 'storeMemberships', uid + '_' + storeId), { uid: uid, storeId: storeId, role: 'master', createdAt: serverTimestamp() });
+    await setDoc(doc(dbFs, 'users', uid), { storeId: storeId, storeIds: [storeId], role: 'master', name: myName, email: email });
 
     let code = generateInviteCode();
     for(let i = 0; i < 5; i++) {
@@ -635,6 +669,113 @@ window.joinStoreAccount = async function() {
 
 window.logoutUser = function() { signOut(authFs); };
 
+// ============================================================
+// 다중 매장 (마스터 전용) — 매장 전환 / 추가
+// 보안: storeId를 바꾸는 요청은 storeMemberships/{uid}_{storeId} 문서가
+// 실제로 존재해야만 허용되도록 firestore.rules에서 검증함 (본인이 진짜
+// 소유한 매장으로만 전환 가능, 임의의 storeId로 전환 불가)
+// ============================================================
+let storeNameCache = {}; // storeId -> name (같은 세션 내 반복 조회 방지용 캐시)
+
+window.switchActiveStore = async function(newStoreId) {
+  if(!myProfile || myProfile.role !== 'master') return toast('관리자만 매장을 전환할 수 있습니다.', 'err');
+  if(!newStoreId || newStoreId === myProfile.storeId) return;
+  if(!myProfile.storeIds || myProfile.storeIds.indexOf(newStoreId) === -1) return toast('소속되지 않은 매장입니다.', 'err');
+  if(!requireOnline('매장 전환')) return;
+  try {
+    await updateDoc(doc(dbFs, 'users', myProfile.uid), { storeId: newStoreId });
+    await reloadActiveStore(newStoreId);
+    toast('매장을 전환했습니다: ' + (storeInfo.name || newStoreId), 'ok');
+  } catch(err) { toast('매장 전환 실패: ' + err.message, 'err'); }
+};
+
+window.createAdditionalStore = async function() {
+  if(!myProfile || myProfile.role !== 'master') return toast('관리자만 매장을 추가할 수 있습니다.', 'err');
+  const nameInput = document.getElementById('in-new-store-name');
+  const storeName = nameInput ? nameInput.value.trim() : '';
+  if(!storeName) return toast('새 매장 이름을 입력하세요.', 'err');
+  if(!requireOnline('매장 추가')) return;
+  try {
+    const storeRef = doc(collection(dbFs, 'stores'));
+    const newStoreId = storeRef.id;
+    await setDoc(storeRef, { name: storeName, ownerUid: myProfile.uid, createdAt: serverTimestamp(), plan: 'trial', trialStartedAt: serverTimestamp(), currentInviteCode: null });
+
+    let code = generateInviteCode();
+    for(let i = 0; i < 5; i++) {
+      const exists = await getDoc(doc(dbFs, 'inviteCodes', code));
+      if(!exists.exists()) break;
+      code = generateInviteCode();
+    }
+    await setDoc(doc(dbFs, 'inviteCodes', code), { storeId: newStoreId });
+    await updateDoc(storeRef, { currentInviteCode: code });
+
+    // 소유권 증명 문서를 먼저 만들어야, 바로 다음 줄의 storeId 전환이 보안규칙을 통과함
+    await setDoc(doc(dbFs, 'storeMemberships', myProfile.uid + '_' + newStoreId), { uid: myProfile.uid, storeId: newStoreId, role: 'master', createdAt: serverTimestamp() });
+
+    const newStoreIds = (myProfile.storeIds || [myProfile.storeId]).concat([newStoreId]);
+    await updateDoc(doc(dbFs, 'users', myProfile.uid), { storeId: newStoreId, storeIds: newStoreIds });
+
+    await reloadActiveStore(newStoreId, newStoreIds);
+    if(nameInput) nameInput.value = '';
+    justCreatedStore = true;
+    showPage('recipe');
+    openQuickStart();
+    toast('새 매장이 생성되었습니다: ' + storeName, 'ok');
+  } catch(err) { toast('매장 추가 실패: ' + err.message, 'err'); }
+};
+
+async function reloadActiveStore(newStoreId, newStoreIdsOverride) {
+  detachListeners();
+  myProfile.storeId = newStoreId;
+  if(newStoreIdsOverride) myProfile.storeIds = newStoreIdsOverride;
+  rawCache = []; menuCache = []; recentSalesCache = [];
+
+  const storeSnap = await getDoc(doc(dbFs, 'stores', newStoreId));
+  storeInfo = storeSnap.exists() ? storeSnap.data() : { name: '내 매장' };
+
+  document.getElementById('header-store-name').innerText = storeInfo.name || '내 매장';
+  document.getElementById('my-account-info').innerText = (myProfile.name || '') + ' (' + myProfile.email + ') · 권한: ' + (myProfile.role === 'master' ? '관리자' : '직원') + '\n소속 매장: ' + (storeInfo.name || '');
+  renderInviteCode();
+  renderTrialBanner();
+  await renderStoreSwitcher();
+
+  const bizCard = document.getElementById('biz-settings-card');
+  if(bizCard && myProfile.role === 'master') {
+    document.getElementById('in-vat-enabled').checked = !!storeInfo.vatEnabled;
+    document.getElementById('in-vat-rate').value = (storeInfo.vatRate != null) ? storeInfo.vatRate : 10;
+    const fc = storeInfo.fixedCosts || {};
+    document.getElementById('in-fixed-rent').value = fc.rent || '';
+    document.getElementById('in-fixed-labor').value = fc.labor || '';
+    document.getElementById('in-fixed-util').value = fc.util || '';
+  }
+
+  attachListeners();
+  showPage(currentPage);
+}
+
+window.renderStoreSwitcher = async function() {
+  const slot = document.getElementById('store-switcher-slot');
+  if(!slot) return;
+  if(!myProfile || myProfile.role !== 'master' || !myProfile.storeIds || myProfile.storeIds.length <= 1) {
+    slot.innerHTML = '<p style="font-size:0.6rem; color:var(--muted);">소속된 매장이 1개뿐입니다. 아래에서 매장을 추가하면 전환 메뉴가 나타납니다.</p>';
+    return;
+  }
+  const ids = myProfile.storeIds;
+  for(let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    if(storeNameCache[id]) continue;
+    if(id === myProfile.storeId) { storeNameCache[id] = storeInfo.name || id; continue; }
+    try {
+      const snap = await getDoc(doc(dbFs, 'stores', id));
+      storeNameCache[id] = snap.exists() ? (snap.data().name || id) : id;
+    } catch(e) { storeNameCache[id] = id; }
+  }
+  const opts = ids.map(function(id) {
+    return '<option value="' + id + '"' + (id === myProfile.storeId ? ' selected' : '') + '>' + esc(storeNameCache[id] || id) + '</option>';
+  }).join('');
+  slot.innerHTML = '<select onchange="switchActiveStore(this.value)" style="margin:0;">' + opts + '</select>';
+};
+
 async function enterApp(user) {
   try {
     const profileSnap = await getDoc(doc(dbFs, 'users', user.uid));
@@ -653,9 +794,12 @@ async function enterApp(user) {
     document.getElementById('header-store-name').innerText = storeInfo.name || '내 매장';
     updateRoleBadge();
     renderOfflineBanner();
+    renderTrialBanner();
     document.getElementById('my-account-info').innerText = (myProfile.name || '') + ' (' + myProfile.email + ') · 권한: ' + (myProfile.role === 'master' ? '관리자' : '직원') + '\n소속 매장: ' + (storeInfo.name || '');
     document.getElementById('invite-card').classList.toggle('hidden-page', myProfile.role !== 'master');
-    if(myProfile.role === 'master') renderInviteCode();
+    const storeSwitcherCard = document.getElementById('store-switcher-card');
+    if(storeSwitcherCard) storeSwitcherCard.classList.toggle('hidden-page', myProfile.role !== 'master');
+    if(myProfile.role === 'master') { renderInviteCode(); renderStoreSwitcher(); }
 
     const bizCard = document.getElementById('biz-settings-card');
     if(bizCard) {
@@ -864,28 +1008,36 @@ window.regenerateInviteCode = async function() {
 // ============================================================
 // 실시간 리스너 (매장 범위로 스코프됨)
 // ============================================================
+let activeUnsubscribers = []; // attachListeners가 등록한 onSnapshot 해제 함수들 (매장 전환 시 정리용)
+
 function attachListeners() {
   if(listenersAttached) return;
   listenersAttached = true;
 
-  onSnapshot(storeCol('raw'), function(snap) {
+  activeUnsubscribers.push(onSnapshot(storeCol('raw'), function(snap) {
     rawCache = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
     if(currentPage === 'raw') { renderRawOnboard(); renderRaw(); }
     if(currentPage === 'pos') { renderLowStockBanner(); renderQuickSales(); }
     if(currentPage === 'recipe') { updateSelects(); updateRecipeCalc(); }
-  }, function(err) { toast('재고 실시간 연결 오류: ' + err.message, 'err'); });
+  }, function(err) { toast('재고 실시간 연결 오류: ' + err.message, 'err'); }));
 
-  onSnapshot(storeCol('menus'), function(snap) {
+  activeUnsubscribers.push(onSnapshot(storeCol('menus'), function(snap) {
     menuCache = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
     if(currentPage === 'pos') renderQuickSales();
     if(currentPage === 'recipe') { renderRecipeOnboard(); renderSavedMenus(); }
-  }, function(err) { toast('메뉴 실시간 연결 오류: ' + err.message, 'err'); });
+  }, function(err) { toast('메뉴 실시간 연결 오류: ' + err.message, 'err'); }));
 
   const recentQ = query(storeCol('sales'), orderBy('date', 'desc'), limit(5));
-  onSnapshot(recentQ, function(snap) {
+  activeUnsubscribers.push(onSnapshot(recentQ, function(snap) {
     recentSalesCache = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
     if(currentPage === 'pos') renderRecentSales();
-  }, function(err) { toast('매출 실시간 연결 오류: ' + err.message, 'err'); });
+  }, function(err) { toast('매출 실시간 연결 오류: ' + err.message, 'err'); }));
+}
+
+function detachListeners() {
+  activeUnsubscribers.forEach(function(unsub) { try { unsub(); } catch(e) {} });
+  activeUnsubscribers = [];
+  listenersAttached = false;
 }
 
 // ============================================================
@@ -909,6 +1061,7 @@ window.showPage = function(id) {
   if(id === 'report') renderDashboard();
   if(id === 'raw') { renderRawOnboard(); renderRaw(); }
   if(id === 'recipe') { renderRecipeOnboard(); updateSelects(); renderSavedMenus(); updateRecipeCalc(); }
+  if(id === 'ai') renderAiKeyOnboard();
   if(id === 'setting') { updateSyncInfo(); if(myProfile.role === 'master') renderInviteCode(); }
 };
 
@@ -978,6 +1131,16 @@ function renderPosOnboard() {
   if(menuCache.length > 0) { slot.innerHTML = ''; return; }
   slot.innerHTML = '<div class="onboard-card"><b style="font-size:0.8rem;">🍽️ 아직 등록된 메뉴가 없습니다</b>' +
     '<div class="onboard-step" style="justify-content:center;">[메뉴] 탭에서 첫 메뉴를 등록하면 여기 표시됩니다</div></div>';
+}
+
+function renderAiKeyOnboard() {
+  const slot = document.getElementById('ai-key-onboard-slot');
+  if(!slot) return;
+  if(localPrefs.aiKey) { slot.innerHTML = ''; return; }
+  slot.innerHTML = '<div class="onboard-card"><b style="font-size:0.8rem;">🔑 무료 AI 열쇠가 필요합니다 (1분 소요)</b>' +
+    '<div class="onboard-step"><span class="num">1</span><a href="https://ai.google.dev/gemini-api/docs/api-key?hl=ko" target="_blank" rel="noopener" style="color:#a855f7; font-weight:700;">여기를 눌러 구글 페이지 열기</a></div>' +
+    '<div class="onboard-step"><span class="num">2</span>구글 계정으로 로그인 후 "API 키 만들기" 버튼 클릭 (무료, 카드 등록 불필요)</div>' +
+    '<div class="onboard-step"><span class="num">3</span>만들어진 열쇠(AIza로 시작하는 글자)를 복사해서 위 칸에 붙여넣기</div></div>';
 }
 
 function renderCategoryTabs() {
@@ -1239,7 +1402,7 @@ window.cancelSale = async function(saleId) {
 // ============================================================
 // AI 분석관
 // ============================================================
-window.saveAiKeyLocal = function() { localPrefs.aiKey = document.getElementById('ai-api-key').value.trim(); saveLocalPrefs(); };
+window.saveAiKeyLocal = function() { localPrefs.aiKey = document.getElementById('ai-api-key').value.trim(); saveLocalPrefs(); renderAiKeyOnboard(); };
 window.askAI = function() {
   const key = document.getElementById('ai-api-key').value.trim();
   const msgIn = document.getElementById('ai-user-msg');
@@ -1327,6 +1490,99 @@ window.addRawWithAverage = async function() {
   } catch(err) { toast('등록 실패: ' + err.message, 'err'); }
 };
 
+window.handleRawOcrFile = async function(e) {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('ocr-status');
+  const label = document.getElementById('ocr-upload-label');
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = '⏳ 이미지 인식 중... (몇 초 걸릴 수 있음)';
+  label.style.pointerEvents = 'none';
+  label.style.opacity = '0.6';
+  try {
+    const { createWorker } = await import('https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.esm.min.js');
+    const worker = await createWorker('kor+eng');
+    const { data } = await worker.recognize(file);
+    await worker.terminate();
+
+    const parsed = parseReceiptText(data.text || '');
+    let filled = [];
+    if(parsed.name) { document.getElementById('in-raw-name').value = parsed.name; filled.push('재료명'); }
+    if(parsed.qty)  { document.getElementById('in-raw-qty').value = parsed.qty; filled.push('입고량'); }
+    if(parsed.unit) { document.getElementById('in-raw-unit').value = parsed.unit; }
+    if(parsed.price){ document.getElementById('in-raw-price').value = parsed.price; filled.push('매입총액'); }
+
+    if(filled.length > 0) {
+      statusEl.style.color = 'var(--accent-green)';
+      statusEl.textContent = '✅ ' + filled.join('/') + ' 자동 입력됨. 값을 확인하고 입고 등록을 눌러주세요. (OCR은 완벽하지 않을 수 있음)';
+      toast('OCR 인식 완료 - 값을 확인 후 등록하세요', 'ok');
+    } else {
+      statusEl.style.color = 'var(--accent-rose)';
+      statusEl.textContent = '⚠️ 사진에서 항목을 찾지 못했습니다. 직접 입력해주세요.';
+      toast('OCR 인식 결과 없음', 'err');
+    }
+  } catch(err) {
+    statusEl.style.color = 'var(--accent-rose)';
+    statusEl.textContent = '⚠️ 인식 실패: ' + err.message + ' (직접 입력해주세요)';
+    toast('OCR 인식 실패', 'err');
+  } finally {
+    label.style.pointerEvents = '';
+    label.style.opacity = '';
+    e.target.value = '';
+  }
+};
+
+// 아주 단순한 규칙 기반 파서. 정식 명세서 양식(품명/수량/단가/공급가액 표)이 아니어도
+// 최대한 값을 추정하되, 확신이 없으면 비워둔다.
+function parseReceiptText(text) {
+  const lines = text.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+  // 줄 전체를 버릴 노이즈 단어(라벨이 아니라 순수 헤더/합계성 단어일 때만)
+  const noisyWholeLine = ['거래명세서','명세서','영수증','사업자등록번호','공급받는자','공급자'];
+  // 줄 앞에 라벨로 붙는 경우, 라벨만 떼어내고 나머지는 후보로 사용
+  const labelPrefix = /^(품명|재료명|품목명|상품명|품목|규격|비고)\s*[:：]?\s*/;
+
+  // 매입총액 추정: 콤마 포함 3자리 이상 숫자 또는 4자리 이상 숫자 중 가장 큰 값
+  // (부가세 포함 합계가 보통 가장 큰 값이라 실제 지출액과 가장 가까움)
+  let bestPrice = 0;
+  const priceRegex = /([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,})\s*원?/g;
+  let m;
+  while((m = priceRegex.exec(text)) !== null) {
+    const v = Number(m[1].replace(/,/g, ''));
+    if(v > bestPrice && v < 100000000) bestPrice = v;
+  }
+
+  // 입고량+단위 추정: 숫자 뒤에 g/kg/ea/개/L/ml 패턴. 앱 입력 단위가 g/ea/kg/L 4종뿐이라
+  // ml/리터 표기는 L 단위로 환산한다 (500ml -> 0.5L).
+  let qty = null, unit = null;
+  const qtyRegex = /([0-9]+(?:\.[0-9]+)?)\s*(kg|ml|g|ea|개|L|l|리터)/i;
+  const qm = text.match(qtyRegex);
+  if(qm) {
+    const rawVal = Number(qm[1]);
+    const u = qm[2].toLowerCase();
+    if(u === 'ml') { unit = 'L'; qty = String(Math.round((rawVal / 1000) * 1000) / 1000); }
+    else if(u === 'kg') { unit = 'kg'; qty = qm[1]; }
+    else if(u === 'g') { unit = 'g'; qty = qm[1]; }
+    else if(u === 'l' || u === '리터') { unit = 'L'; qty = qm[1]; }
+    else { unit = 'ea'; qty = qm[1]; }
+  }
+
+  // 재료명 추정: 라벨 prefix를 뗀 뒤, 숫자/단위/노이즈 단어를 제거하고 남는 첫 유효 줄.
+  // "단가", "수량" 같은 표 헤더 단어만 남는 줄은 후보에서 제외(정확히 일치할 때만).
+  const exactNoiseWords = ['단가','수량','품명','합계','금액','비고','규격','공급가액','부가세','사업자','등록번호','전화','계','품목'];
+  let name = '';
+  for (let line of lines) {
+    if (noisyWholeLine.some(function(w) { return line.indexOf(w) !== -1; })) continue;
+    line = line.replace(labelPrefix, '');
+    let candidate = line
+      .replace(/[0-9,]+(?:\.[0-9]+)?\s*(kg|ml|g|ea|개|L|l|리터|원|%)?/g, '')
+      .replace(/[:：\-_/]/g, '')
+      .trim();
+    if (candidate.length >= 1 && !exactNoiseWords.includes(candidate)) { name = candidate; break; }
+  }
+
+  return { name: name, qty: qty, unit: unit, price: bestPrice || null };
+}
+
 window.renderRaw = function() {
   let html = '';
   if(rawCache.length > 0) {
@@ -1339,10 +1595,25 @@ window.renderRaw = function() {
         '<div style="font-size:0.62rem; color:var(--muted);">' + (Math.round(r.qty * 100) / 100) + r.unit + ' · 평균단가 ' + Math.round(r.unitPrice || 0).toLocaleString() + '원/' + r.unit + '</div>' +
         (low ? '<div style="font-size:0.62rem; color:var(--accent-rose); font-weight:700; margin-top:2px;">💡 ' + suggestQty + r.unit + ' 이상 발주 추천 (최소재고의 2배 기준)</div>' : '') +
         '</div>' +
-        '<button onclick="deleteRaw(\'' + r.id + '\')" class="btn-sm" style="background:#e11d48; color:#fff;">🗑️</button></div>';
+        '<div style="display:flex; gap:0.3rem;">' +
+        '<button onclick="editMinQty(\'' + r.id + '\', ' + min + ', \'' + esc(r.unit) + '\')" class="btn-sm" style="background:var(--accent-blue,#3b82f6); color:#fff;">✏️</button>' +
+        '<button onclick="deleteRaw(\'' + r.id + '\')" class="btn-sm" style="background:#e11d48; color:#fff;">🗑️</button>' +
+        '</div></div>';
     });
   } else { html = '<p class="text-center" style="font-size:0.7rem; color:var(--muted);">등록된 재고 없음</p>'; }
   document.getElementById('raw-inventory-list').innerHTML = html;
+};
+
+window.editMinQty = async function(id, currentMin, unit) {
+  if(!requireOnline('최소재고 수정')) return;
+  const input = prompt('최소재고 기준을 입력하세요 (현재: ' + currentMin + unit + ')\n이 수량 이하로 떨어지면 "부족" 알림이 뜹니다.', currentMin);
+  if(input === null) return;
+  const newMin = Number(input);
+  if(isNaN(newMin) || newMin < 0) return toast('올바른 숫자를 입력해주세요', 'err');
+  try {
+    await updateDoc(storeDocRef('raw', id), { minQty: newMin });
+    toast('최소재고 기준이 ' + newMin + unit + '으로 변경되었습니다', 'ok');
+  } catch(err) { toast('수정 실패: ' + err.message, 'err'); }
 };
 
 window.deleteRaw = async function(id) {
